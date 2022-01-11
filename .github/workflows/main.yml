@@ -19,6 +19,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: iffy/install-nim@v4.1.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         version: ${{ matrix.version }}
     - name: Run tests
@@ -44,6 +46,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - uses: iffy/install-nim@v4.1.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         version: ${{ matrix.version }}
     - name: Run tests
