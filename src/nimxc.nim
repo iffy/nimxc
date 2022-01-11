@@ -125,8 +125,8 @@ frm "linux-amd64":
         "--amd64.macosx.clang.path:" & absolutePath(toolchains / subdir),
         "--amd64.macosx.clang.exe:zigcc",
         "--amd64.macosx.clang.linkerexe:zigcc",
-        "--passC:-target amd64-macos",
-        "--passL:-target amd64-macos",
+        "--passC:-target x86_64-macos",
+        "--passL:-target x86_64-macos",
       ]
   
   target "macosx-arm64":
