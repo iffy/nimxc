@@ -73,7 +73,7 @@ proc install_zig(src_url: string, toolchains: string) =
     echo "Already installed: " & dstsubdir
   
   # make zigcc
-  let zigpath = absolutePath(dstsubdir / "zig")
+  let zigpath = absolutePath(dstsubdir / "zig").changeFileExt(ExeExt)
   writeFile(dstsubdir / "zigcc.sh", [
     "#!/bin/bash",
     zigpath & " cc \"${@}\"",
