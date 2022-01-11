@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        version:
+          - binary:1.6.0
+          - binary:1.4.8
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: iffy/install-nim@v4.1.1
+      with:
+        version: ${{ matrix.version }}
+    - name: Run tests
+      run: |
+        nimble install -y
+        nimble test
+# TODO: save all the compiled products and run them on the correct OS to see if they work
