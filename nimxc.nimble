@@ -12,3 +12,4 @@ bin           = @["nimxc"]
 
 requires "nim >= 1.4.0"
 requires "argparse >= 2.0.1"
+requires "zippy >= 0.7.3"

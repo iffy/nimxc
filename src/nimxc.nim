@@ -5,6 +5,8 @@ import std/strutils
 import std/strformat
 import std/tables
 
+import zippy/ziparchives
+
 type
   Pair* = string
   InstallProc = proc(dir: string): void {.closure.}
@@ -51,10 +53,13 @@ proc install_zig(src_url: string, toolchains: string) =
   let dstsubdir = toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
   if not dstsubdir.dirExists:
     echo &"Extracting {dlfilename} to {dstsubdir}"
-    var p = startProcess(findExe"tar",
-      args=["-x", "-C", toolchains, "-f", dlfilename],
-      options={poStdErrToStdOut, poParentStreams})
-    doAssert p.waitForExit() == 0
+    if dlfilename.endsWith(".zip"):
+      extractAll(dlfilename, dstsubdir)
+    else:
+      var p = startProcess(findExe"tar",
+        args=["-x", "-C", toolchains, "-f", dlfilename],
+        options={poStdErrToStdOut, poParentStreams})
+      doAssert p.waitForExit() == 0
   else:
     echo "Already installed: " & dstsubdir
   
@@ -120,6 +125,54 @@ target "macosx-amd64", "linux-x86_64":
   let subdir = "zig-macos-x86_64-0.9.0"
   proc install(toolchains: string) =
     install_zig("https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz", toolchains)
+  proc args(toolchains: string): seq[string] =
+    @[
+      "--cc:clang",
+      "--cpu:amd64",
+      "--os:linux",
+      "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
+      "--amd64.linux.clang.exe:zigcc",
+      "--amd64.linux.clang.linkerexe:zigcc",
+      "--passC:-target x86_64-linux",
+      "--passL:-target x86_64-linux",
+    ]
+
+target "linux-x86_64", "macosx-amd64":
+  let subdir = "zig-linux-x86_64-0.9.0"
+  proc install(toolchains: string) =
+    install_zig("https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz", toolchains)
+  proc args(toolchains: string): seq[string] =
+    @[
+      "--cc:clang",
+      "--cpu:amd64",
+      "--os:macosx",
+      "--amd64.macosx.clang.path:" & absolutePath(toolchains / subdir),
+      "--amd64.macosx.clang.exe:zigcc",
+      "--amd64.macosx.clang.linkerexe:zigcc",
+      "--passC:-target amd64-macos",
+      "--passL:-target amd64-macos",
+    ]
+
+target "linux-x86_64", "macosx-arm64":
+  let subdir = "zig-linux-x86_64-0.9.0"
+  proc install(toolchains: string) =
+    install_zig("https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz", toolchains)
+  proc args(toolchains: string): seq[string] =
+    @[
+      "--cc:clang",
+      "--cpu:arm64",
+      "--os:macosx",
+      "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
+      "--arm64.macosx.clang.exe:zigcc",
+      "--arm64.macosx.clang.linkerexe:zigcc",
+      "--passC:-target aarch64-macos",
+      "--passL:-target aarch64-macos",
+    ]
+
+target "windows-x86_64", "linux-x86_64":
+  let subdir = "zig-windows-x86_64-0.9.0"
+  proc install(toolchains: string) =
+    install_zig("https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip", toolchains)
   proc args(toolchains: string): seq[string] =
     @[
       "--cc:clang",
