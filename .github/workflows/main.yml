@@ -28,7 +28,7 @@ jobs:
     - name: Pass binaries to next step
       uses: actions/upload-artifact@v2
       with:
-        name: binaries
+        name: binaries-${{ matrix.os }}
         path: _tests/tests/
   run:
     needs: [compile]
@@ -56,7 +56,9 @@ jobs:
       run: |
         set -x
         ls -al
+        find .
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
           echo "$dname"
           "${dname}/main"
         done
+# TODO: test other binaries using qemu
