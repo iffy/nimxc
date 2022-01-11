@@ -74,11 +74,11 @@ proc install_zig(src_url: string, toolchains: string) =
   
   # make zigcc
   let zigpath = absolutePath(dstsubdir / "zig")
-  writeFile(dstsubdir / "zigcc", [
+  writeFile(dstsubdir / "zigcc.sh", [
     "#!/bin/bash",
     zigpath & " cc \"${@}\"",
   ].join("\l"))
-  setFilePermissions(dstsubdir / "zigcc", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
+  setFilePermissions(dstsubdir / "zigcc.sh", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
   echo "ensured zigcc is present"
 
 # See https://nim-lang.org/docs/system.html#hostCPU for possible CPU arch values
@@ -96,8 +96,8 @@ frm "macosx-amd64":
         "--cpu:arm64",
         "--os:macosx",
         "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--arm64.macosx.clang.exe:zigcc",
-        "--arm64.macosx.clang.linkerexe:zigcc",
+        "--arm64.macosx.clang.exe:zigcc.sh",
+        "--arm64.macosx.clang.linkerexe:zigcc.sh",
         "--passC:-target aarch64-macos",
         "--passL:-target aarch64-macos",
       ]
@@ -109,8 +109,8 @@ frm "macosx-amd64":
         "--cpu:amd64",
         "--os:linux",
         "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:zigcc",
-        "--amd64.linux.clang.linkerexe:zigcc",
+        "--amd64.linux.clang.exe:zigcc.sh",
+        "--amd64.linux.clang.linkerexe:zigcc.sh",
         "--passC:-target x86_64-linux",
         "--passL:-target x86_64-linux",
       ]
@@ -128,8 +128,8 @@ frm "linux-amd64":
         "--cpu:amd64",
         "--os:macosx",
         "--amd64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.macosx.clang.exe:zigcc",
-        "--amd64.macosx.clang.linkerexe:zigcc",
+        "--amd64.macosx.clang.exe:zigcc.sh",
+        "--amd64.macosx.clang.linkerexe:zigcc.sh",
         "--passC:-target x86_64-macos",
         "--passL:-target x86_64-macos",
       ]
@@ -141,8 +141,8 @@ frm "linux-amd64":
         "--cpu:arm64",
         "--os:macosx",
         "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--arm64.macosx.clang.exe:zigcc",
-        "--arm64.macosx.clang.linkerexe:zigcc",
+        "--arm64.macosx.clang.exe:zigcc.sh",
+        "--arm64.macosx.clang.linkerexe:zigcc.sh",
         "--passC:-target aarch64-macos",
         "--passL:-target aarch64-macos",
       ]
@@ -154,8 +154,8 @@ frm "linux-amd64":
         "--cpu:amd64",
         "--os:linux",
         "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:zigcc",
-        "--amd64.linux.clang.linkerexe:zigcc",
+        "--amd64.linux.clang.exe:zigcc.sh",
+        "--amd64.linux.clang.linkerexe:zigcc.sh",
         "--passC:-target x86_64-linux",
         "--passL:-target x86_64-linux",
       ]
@@ -173,8 +173,8 @@ frm "windows-amd64":
         "--cpu:amd64",
         "--os:linux",
         "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:zigcc",
-        "--amd64.linux.clang.linkerexe:zigcc",
+        "--amd64.linux.clang.exe:zigcc.sh",
+        "--amd64.linux.clang.linkerexe:zigcc.sh",
         "--passC:-target x86_64-linux",
         "--passL:-target x86_64-linux",
       ]
