@@ -5,7 +5,7 @@ import std/strutils
 import std/tables
 import std/unittest
 
-import nimxcompile
+import nimxc
 
 const sample_file = """
 echo "Hello, world!"
