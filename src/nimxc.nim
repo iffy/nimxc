@@ -174,6 +174,16 @@ frm "windows-amd64":
         "--passL:-target x86_64-linux",
       ]
 
+#----------------------------------------------------------------------
+for key in host_systems.keys:
+  block:
+    proc install(toolchains: string) = discard
+    proc args(toolchains: string): seq[string] = discard
+    let install_proc: InstallProc = install
+    let args_proc: ArgsProc = args
+    host_systems[key][key] = (install_proc, args_proc)
+
+
 #======================================================================
 
 proc get_bundle(host: Pair, target: Pair): Bundle =
@@ -185,10 +195,14 @@ proc get_bundle(host: Pair, target: Pair): Bundle =
 
 proc compile_args*(host: Pair, target: Pair, dir = ""): seq[string] =
   ## Return the nim compile args to use to compile for the given target
+  if host == target:
+    return
   get_bundle(host, target).args(dir)
 
 proc install_toolchain*(host: Pair, target: Pair, dir = "") =
   ## Install the toolchain for cross-compiling
+  if host == target:
+    return
   get_bundle(host, target).install(dir)
 
 const DEFAULT_TOOLCHAIN_DIR = expandTilde("~/.nimxc")

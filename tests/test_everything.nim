@@ -31,6 +31,8 @@ if host_systems.hasKey(THIS_HOST):
         let subdir = testdir("from_" & THIS_HOST & "_to_" & target)
         # install it
         THIS_HOST.install_toolchain(target, toolchains_root)
+        for x in walkDirRec(toolchains_root):
+          checkpoint x
 
         # create sample file
         let src = subdir / "main.nim"
