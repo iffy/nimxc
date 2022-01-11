@@ -13,8 +13,8 @@ jobs:
           - binary:1.6.0
           - binary:1.4.8
         os:
-          # - ubuntu-latest
-          # - macOS-latest
+          - ubuntu-latest
+          - macOS-latest
           - windows-latest
     steps:
     - uses: actions/checkout@v1
