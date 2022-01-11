@@ -54,11 +54,14 @@ proc install_zig(src_url: string, toolchains: string) =
     echo &"Already downloaded {src_url}"
   
   # extract it
-  let dstsubdir = toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
+  let dstsubdir = if dlfilename.endsWith(".zip"):
+      toolchains / dlfilename.extractFilename.changeFileExt("")
+    else:
+      toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
   if not dstsubdir.dirExists:
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
-      extractAll(dlfilename, dstsubdir)
+      extractAll(dlfilename, dstsubdir.parentDir)
     else:
       var p = startProcess(findExe"tar",
         args=["-x", "-C", toolchains, "-f", dlfilename],
