@@ -1,8 +1,9 @@
+import std/algorithm
 import std/httpclient
 import std/os
 import std/osproc
-import std/strutils
 import std/strformat
+import std/strutils
 import std/tables
 
 import zippy/ziparchives
@@ -110,7 +111,7 @@ frm "macosx-amd64":
       ]
 
 #----------------------------------------------------------------------
-frm "linux-x86_64":
+frm "linux-amd64":
   let subdir = "zig-linux-x86_64-0.9.0"
   proc install(toolchains: string) =
     install_zig("https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz", toolchains)
@@ -222,9 +223,9 @@ when isMainModule:
       flag("-a", "--all", help="Show targets supported on architectures other than this host machine")
       run:
         if opts.all:
-          for host,bundles in host_systems.pairs:
+          for host in toSeq(host_systems.keys).sorted:
             echo &"From {host}"
-            for dst in bundles.keys:
+            for dst in toSeq(host_systems[host].keys).sorted:
               echo &"  --target {dst}"
         else:
           if host_systems.hasKey(THIS_HOST):
