@@ -75,8 +75,8 @@ proc install_zig(src_url: string, toolchains: string) =
   setFilePermissions(dstsubdir / "zigcc", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
   echo "ensured zigcc is present"
 
-#----------------------------------------------------------------------
-# macosx
+# See https://nim-lang.org/docs/system.html#hostCPU for possible CPU arch values
+
 #----------------------------------------------------------------------
 frm "macosx-amd64":
   let subdir = "zig-macos-x86_64-0.9.0"
@@ -109,6 +109,7 @@ frm "macosx-amd64":
         "--passL:-target x86_64-linux",
       ]
 
+#----------------------------------------------------------------------
 frm "linux-x86_64":
   let subdir = "zig-linux-x86_64-0.9.0"
   proc install(toolchains: string) =
@@ -153,6 +154,7 @@ frm "linux-x86_64":
         "--passL:-target x86_64-linux",
       ]
 
+#----------------------------------------------------------------------
 frm "windows-amd64":
   let subdir = "zig-windows-x86_64-0.9.0"
   proc install(toolchains: string) =

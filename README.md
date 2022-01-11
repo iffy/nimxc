@@ -13,10 +13,10 @@ nimble install https://github.com/iffy/nimxc.git
 
 ```
 # Install the cross-compiler toolchain for 64-bit Linux
-nimxc install --target linux-x86_64
+nimxc install --target linux-amd64
 
 # Compile `foo.nim` for 64-bit Linux
-nimxc c --target linux-x86_64 foo.nim
+nimxc c --target linux-amd64 foo.nim
 
 # see more
 nimxc --help
