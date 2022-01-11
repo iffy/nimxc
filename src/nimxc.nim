@@ -52,7 +52,7 @@ proc install_zig(src_url: string, toolchains: string) =
   if not dstsubdir.dirExists:
     echo &"Extracting {dlfilename} to {dstsubdir}"
     var p = startProcess(findExe"tar",
-      args=["-vx", "-C", toolchains, "-f", dlfilename],
+      args=["-x", "-C", toolchains, "-f", dlfilename],
       options={poStdErrToStdOut, poParentStreams})
     doAssert p.waitForExit() == 0
   else:
