@@ -28,13 +28,13 @@ if host_systems.hasKey(THIS_HOST):
   suite "from " & THIS_HOST:
     for target in host_systems[THIS_HOST].keys:
       test "to " & target:
-        let subdir = testdir(target)
+        let subdir = testdir("from_" & THIS_HOST & "_to_" & target)
         # install it
         THIS_HOST.install_toolchain(target, toolchains_root)
 
         # create sample file
-        let src = subdir / "from_" & THIS_HOST
-        let dst = subdir / "from_" & THIS_HOST & ExeExt
+        let src = subdir / "main.nim"
+        let dst = src.changeFileExt(ExeExt)
         writeFile(src, sample_file)
         
         # compile

@@ -56,7 +56,7 @@ jobs:
       run: |
         set -x
         ls -al
-        for fname in $(find . -name "$(nimxc this)*"); do
-          echo "fname: $fname"
-          $fname
+        for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
+          echo "$dname"
+          "${dname}/main"
         done
