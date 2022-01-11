@@ -63,7 +63,7 @@ proc install_zig(src_url: string, toolchains: string) =
     if dlfilename.endsWith(".zip"):
       let tmpdir = toolchains / "tmp"
       extractAll(dlfilename, tmpdir)
-      moveDir(tmpdir, dstsubdir)
+      moveDir(tmpdir / dstsubdir.extractFilename, dstsubdir)
     else:
       var p = startProcess(findExe"tar",
         args=["-x", "-C", toolchains, "-f", dlfilename],
