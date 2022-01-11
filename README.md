@@ -1,3 +1,5 @@
+[![tests](https://github.com/iffy/nimxc/actions/workflows/main.yml/badge.svg)](https://github.com/iffy/nimxc/actions/workflows/main.yml)
+
 `nimxc` is a command-line utility that makes it really easy to cross-compile Nim
 programs. This is ALPHA quality software!
 
@@ -15,6 +17,9 @@ nimxc install --target linux-x86_64
 
 # Compile `foo.nim` for 64-bit Linux
 nimxc c --target linux-x86_64 foo.nim
+
+# see more
+nimxc --help
 ```
 
 ## Platform support
