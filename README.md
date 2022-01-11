@@ -27,9 +27,15 @@ nimxc --help
 Generated from running `nimxc list --all`:
 
 ```
+From windows-amd64
+  --target linux-amd64
+From linux-x86_64
+  --target macosx-arm64
+  --target windows-amd64
+  --target macosx-amd64
 From macosx-amd64
   --target macosx-arm64
-  --target linux-x86_64
+  --target linux-amd64
 ```
 
 ## How it works

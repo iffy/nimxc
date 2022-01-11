@@ -64,6 +64,6 @@ jobs:
         find binaries*
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
           echo "$dname"
-          "${dname}/main"
+          "${dname}/main" | tee "${dname}/output.txt"
         done
 # TODO: test other binaries using qemu
