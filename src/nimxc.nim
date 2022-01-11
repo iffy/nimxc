@@ -59,9 +59,11 @@ proc install_zig(src_url: string, toolchains: string) =
     echo "Already installed: " & dstsubdir
   
   # make zigcc
-  writeFile(dstsubdir / "zigcc", """#!/bin/bash
-zig cc "${@}"
-""")
+  let zigpath = absolutePath(dstsubdir / "zig")
+  writeFile(dstsubdir / "zigcc", [
+    "#!/bin/bash",
+    zigpath & " cc \"${@}\"",
+  ].join("\l"))
   setFilePermissions(dstsubdir / "zigcc", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
   echo "ensured zigcc is present"
 
