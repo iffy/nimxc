@@ -33,8 +33,8 @@ if host_systems.hasKey(THIS_HOST):
         THIS_HOST.install_toolchain(target, toolchains_root)
 
         # create sample file
-        let src = subdir / "main.nim"
-        let dst = subdir / "main" & ExeExt
+        let src = subdir / "from_" & THIS_HOST
+        let dst = subdir / "from_" & THIS_HOST & ExeExt
         writeFile(src, sample_file)
         
         # compile

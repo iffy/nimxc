@@ -5,7 +5,7 @@ on:
   push:
 
 jobs:
-  tests:
+  compile:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -25,4 +25,38 @@ jobs:
       run: |
         nimble install -y
         nimble test
-# TODO: save all the compiled products and run them on the correct OS to see if they work
+    - name: Pass binaries to next step
+      uses: actions/upload-artifact@v2
+      with:
+        name: binaries
+        path: _tests/tests/
+  run:
+    needs: [compile]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        version:
+          - binary:1.6.0
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: iffy/install-nim@v4.1.1
+      with:
+        version: ${{ matrix.version }}
+    - name: Run tests
+      run: |
+        nimble install -y
+    - name: Get binaries compiled in prior step
+      uses: actions/download-artifact@v2
+    - name: Run the ones compiled for this OS
+      shell: bash
+      run: |
+        set -x
+        ls -al
+        for fname in $(find . -name "$(nimxc this)*"); do
+          echo "fname: $fname"
+          $fname
+        done

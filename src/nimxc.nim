@@ -190,6 +190,10 @@ when isMainModule:
           if host_systems.hasKey(THIS_HOST):
             for dst in host_systems[THIS_HOST].keys:
               echo &"--target {dst}"
+    command("this"):
+      help("Return this machine's architecture and os")
+      run:
+        echo $THIS_HOST
     command("c"):
       help("Compile a nim file for the given target")
       option("-t", "--target", help="Target system.", choices=this_host_possible_targets)
