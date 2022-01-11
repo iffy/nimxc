@@ -24,6 +24,7 @@ jobs:
       with:
         version: ${{ matrix.version }}
     - name: Run tests
+      shell: bash
       run: |
         nimble install -y
         nimble test
