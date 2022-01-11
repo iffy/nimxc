@@ -61,7 +61,7 @@ proc install_zig(src_url: string, toolchains: string) =
   if not dstsubdir.dirExists:
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
-      extractAll(dlfilename, dstsubdir.parentDir)
+      extractAll(dlfilename, dstsubdir)
     else:
       var p = startProcess(findExe"tar",
         args=["-x", "-C", toolchains, "-f", dlfilename],
