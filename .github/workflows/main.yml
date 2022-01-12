@@ -70,6 +70,6 @@ jobs:
           echo "$dname"
           chmod u+x "${dname}/main"
           "${dname}/main" | tee "${dname}/output.txt"
-          diff "${dname}/output.txt" "${dname}/expected.txt"
+          diff "${dname}/expected.txt" "${dname}/output.txt"
         done
 # TODO: test other binaries using qemu
