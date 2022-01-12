@@ -76,7 +76,7 @@ proc install_zig(src_url: string, toolchains: string) =
   echo "Ensuring zigcc is present ..."
   let zigcc = absolutePath(dstsubdir / "zigcc").changeFileExt(ExeExt)
   if not zigcc.fileExists:
-    zigpath_escaped = zigpath.replace("\\", "\\\\")
+    let zigpath_escaped = zigpath.replace("\\", "\\\\")
     writeFile(zigcc.changeFileExt("nim"), dedent(&"""
       import std/osproc
       import std/os
