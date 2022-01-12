@@ -76,13 +76,14 @@ proc install_zig(src_url: string, toolchains: string) =
   echo "Ensuring zigcc is present ..."
   let zigcc = absolutePath(dstsubdir / "zigcc").changeFileExt(ExeExt)
   if not zigcc.fileExists:
+    zigpath_escaped = zigpath.replace("\\", "\\\\")
     writeFile(zigcc.changeFileExt("nim"), dedent(&"""
       import std/osproc
       import std/os
       proc main() =
         var args = @["cc"]
         args.add(commandLineParams())
-        var p = startProcess("{zigpath}", args = args, options = {{poParentStreams}})
+        var p = startProcess("{zigpath_escaped}", args = args, options = {{poParentStreams}})
         defer: p.close()
         quit(p.waitForExit())
       when isMainModule:
