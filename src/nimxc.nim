@@ -1,4 +1,3 @@
-import std/algorithm
 import std/httpclient
 import std/os
 import std/osproc
@@ -91,6 +90,7 @@ proc install_zig(src_url: string, toolchains: string) =
       """))
     echo execProcess(findExe"nim", args = ["c", "-d:release", "-o:" & zigcc, zigcc.changeFileExt("nim")], options={poStdErrToStdOut})
     if not zigcc.fileExists:
+      echo readFile(zigcc.changeFileExt("nim"))
       raise ValueError.newException("Failed to compile zigcc")
     # setFilePermissions(dstsubdir / "zigcc.sh", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
   echo zigcc.extractFilename, " present: " & zigcc
@@ -239,7 +239,9 @@ proc exec_nim_c*(host: Pair, target: Pair, toolchains: string, args: openArray[s
   p.waitForExit()
 
 when isMainModule:
+  import std/algorithm
   import argparse
+  
   var p = newParser:
     command("install"):
       option("-t", "--target", help="Target system.", choices=this_host_possible_targets)
