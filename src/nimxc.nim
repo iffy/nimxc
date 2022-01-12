@@ -74,12 +74,24 @@ proc install_zig(src_url: string, toolchains: string) =
   
   # make zigcc
   let zigpath = absolutePath(dstsubdir / "zig").changeFileExt(ExeExt)
-  writeFile(dstsubdir / "zigcc.sh", [
-    "#!/bin/bash",
-    zigpath & " cc \"${@}\"",
-  ].join("\l"))
-  setFilePermissions(dstsubdir / "zigcc.sh", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
-  echo "ensured zigcc is present"
+  echo "Ensuring zigcc is present ..."
+  let zigcc = absolutePath(dstsubdir / "zigcc").changeFileExt(ExeExt)
+  if not zigcc.fileExists:
+    writeFile(zigcc.changeFileExt("nim"), unindent(&"""
+      import std/osproc
+      import std/os
+      proc main() =
+        var p = startProcess("{zigpath}", args = commandLineParams(), options = {{poParentStreams}})
+        defer: p.close()
+        quit(p.waitForExit())
+      when isMainModule:
+        main()
+      """))
+    echo execProcess(findExe"nim", args = ["c", "-d:release", zigcc.changeFileExt("nim")])
+    # setFilePermissions(dstsubdir / "zigcc.sh", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
+  echo zigcc.extractFilename, " present: " & zigcc
+
+const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
 # See https://nim-lang.org/docs/system.html#hostCPU for possible CPU arch values
 
@@ -96,8 +108,8 @@ frm "macosx-amd64":
         "--cpu:arm64",
         "--os:macosx",
         "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--arm64.macosx.clang.exe:zigcc.sh",
-        "--arm64.macosx.clang.linkerexe:zigcc.sh",
+        "--arm64.macosx.clang.exe:" & zigcc_name,
+        "--arm64.macosx.clang.linkerexe:" & zigcc_name,
         "--passC:-target aarch64-macos",
         "--passL:-target aarch64-macos",
       ]
@@ -109,8 +121,8 @@ frm "macosx-amd64":
         "--cpu:amd64",
         "--os:linux",
         "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:zigcc.sh",
-        "--amd64.linux.clang.linkerexe:zigcc.sh",
+        "--amd64.linux.clang.exe:" & zigcc_name,
+        "--amd64.linux.clang.linkerexe:" & zigcc_name,
         "--passC:-target x86_64-linux",
         "--passL:-target x86_64-linux",
       ]
@@ -128,8 +140,8 @@ frm "linux-amd64":
         "--cpu:amd64",
         "--os:macosx",
         "--amd64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.macosx.clang.exe:zigcc.sh",
-        "--amd64.macosx.clang.linkerexe:zigcc.sh",
+        "--amd64.macosx.clang.exe:" & zigcc_name,
+        "--amd64.macosx.clang.linkerexe:" & zigcc_name,
         "--passC:-target x86_64-macos",
         "--passL:-target x86_64-macos",
       ]
@@ -141,8 +153,8 @@ frm "linux-amd64":
         "--cpu:arm64",
         "--os:macosx",
         "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--arm64.macosx.clang.exe:zigcc.sh",
-        "--arm64.macosx.clang.linkerexe:zigcc.sh",
+        "--arm64.macosx.clang.exe:" & zigcc_name,
+        "--arm64.macosx.clang.linkerexe:" & zigcc_name,
         "--passC:-target aarch64-macos",
         "--passL:-target aarch64-macos",
       ]
@@ -154,8 +166,8 @@ frm "linux-amd64":
         "--cpu:amd64",
         "--os:linux",
         "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:zigcc.sh",
-        "--amd64.linux.clang.linkerexe:zigcc.sh",
+        "--amd64.linux.clang.exe:" & zigcc_name,
+        "--amd64.linux.clang.linkerexe:" & zigcc_name,
         "--passC:-target x86_64-linux",
         "--passL:-target x86_64-linux",
       ]
@@ -173,8 +185,8 @@ frm "windows-amd64":
         "--cpu:amd64",
         "--os:linux",
         "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:zigcc.sh",
-        "--amd64.linux.clang.linkerexe:zigcc.sh",
+        "--amd64.linux.clang.exe:" & zigcc_name,
+        "--amd64.linux.clang.linkerexe:" & zigcc_name,
         "--passC:-target x86_64-linux",
         "--passL:-target x86_64-linux",
       ]
