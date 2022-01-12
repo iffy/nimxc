@@ -28,14 +28,26 @@ Generated from running `nimxc list --all`:
 
 ```
 From linux-amd64
+  --target linux-amd64
+  --target linux-i386
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
+  --target windows-i386
 From macosx-amd64
   --target linux-amd64
+  --target linux-i386
+  --target macosx-amd64
   --target macosx-arm64
+  --target windows-amd64
+  --target windows-i386
 From windows-amd64
   --target linux-amd64
+  --target linux-i386
+  --target macosx-amd64
+  --target macosx-arm64
+  --target windows-amd64
+  --target windows-i386
 ```
 
 ## How it works
