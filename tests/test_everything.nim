@@ -36,11 +36,11 @@ if host_systems.hasKey(THIS_HOST):
 
       # create sample file
       let src = subdir / "main.nim"
-      let dst = src.changeFileExt(ExeExt)
+      let dst = src.changeFileExt(target.targetExeExt())
       writeFile(src, sample_file)
       
       # compile
-      var args = @["c", "-o:" & dst.extractFilename]
+      var args = @["c", "-o:" & dst]
       for arg in THIS_HOST.compile_args(target, toolchains_root):
         args.add(arg)
       args.add(src.extractFilename)

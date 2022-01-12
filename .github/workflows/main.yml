@@ -54,7 +54,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         version: ${{ matrix.version }}
-    - name: Run tests
+    - name: Install nimxc
       run: |
         nimble install -y
     - name: Get binaries compiled in prior step
@@ -68,8 +68,12 @@ jobs:
         find binaries*
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
           echo "$dname"
-          chmod u+x "${dname}/main"
-          "${dname}/main" | tee "${dname}/output.txt"
+          fname="${dname}/main"
+          if [ -f "${fname}.exe" ]; then
+            fname="${fname}.exe"
+          fi
+          chmod u+x "$fname"
+          "$fname" | tee "${dname}/output.txt"
           diff "${dname}/expected.txt" "${dname}/output.txt"
         done
 # TODO: test other binaries using qemu

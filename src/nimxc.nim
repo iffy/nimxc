@@ -34,6 +34,12 @@ template frm(host: Pair, outer: untyped): untyped =
             this_host_possible_targets.add(target)
     outer
 
+proc targetExeExt*(target: Pair): string =
+  if "windows" in target:
+    return "exe"
+  else:
+    return ""
+
 #======================================================================
 # Target definitions
 #======================================================================
