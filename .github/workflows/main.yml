@@ -66,6 +66,7 @@ jobs:
         find binaries*
         set +x
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
+          echo '-------------------------------------------------------'
           echo "$dname"
           fname="${dname}/main"
           if [ -f "${fname}.exe" ]; then
@@ -75,5 +76,6 @@ jobs:
           file "$fname"
           "$fname" | tee "${dname}/output.txt"
           diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
+          echo ""
         done
 # TODO: test other binaries using qemu
