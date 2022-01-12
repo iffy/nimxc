@@ -75,7 +75,7 @@ jobs:
           file "$fname"
           if [ "$(uname)" == "Darwin" ]; then
             otool -L "$fname"
-          else:
+          else
             ldd "$fname"
           fi
           "$fname" | tee "${dname}/output.txt"
