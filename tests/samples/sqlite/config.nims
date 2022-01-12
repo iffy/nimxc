@@ -1,0 +1,5 @@
+switch("threads", "on")
+switch("tlsEmulation", "off")
+switch("dynlibOverride", "sqlite3")
+switch("dynlibOverride", "sqlite3_32")
+switch("dynlibOverride", "sqlite3_64")
