@@ -1,6 +1,7 @@
 import std/httpclient
 import std/os
 import std/osproc
+import std/sequtils
 import std/strformat
 import std/strutils
 import std/tables
@@ -177,12 +178,15 @@ for key in host_systems.keys:
     host_systems[key][key] = (install_proc, args_proc)
 
 #======================================================================
+proc targets_for(host: Pair): seq[Pair] =
+  if host_systems.hasKey(host):
+    return toSeq(host_systems[host].keys)
 
 proc get_bundle(host: Pair, target: Pair): Bundle =
   if not host_systems.hasKey(host):
     raise ValueError.newException("No such host: " & host)
   if not host_systems[host].hasKey(target):
-    raise ValueError.newException(&"Target {target} unsupported on {host}")
+    raise ValueError.newException(&"Target {target} unsupported on {host}. Acceptable targets: " & targets_for(host).join(", "))
   return host_systems[host][target]
 
 proc compile_args*(host: Pair, target: Pair, dir = ""): seq[string] =
@@ -236,9 +240,8 @@ when isMainModule:
             for dst in toSeq(host_systems[host].keys).sorted:
               echo &"  --target {dst}"
         else:
-          if host_systems.hasKey(THIS_HOST):
-            for dst in host_systems[THIS_HOST].keys:
-              echo &"--target {dst}"
+          for targ in targets_for(THIS_HOST):
+            echo &"--target {targ}"
     command("this"):
       help("Return this machine's architecture and os")
       run:
