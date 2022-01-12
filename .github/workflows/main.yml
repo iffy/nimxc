@@ -74,9 +74,9 @@ jobs:
           chmod u+x "$fname"
           file "$fname"
           if [ "$(uname)" == "Darwin" ]; then
-            otool -L "$fname"
+            otool -L "$fname" || true
           else
-            ldd "$fname"
+            ldd "$fname" || true
           fi
           "$fname" | tee "${dname}/output.txt"
           diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
