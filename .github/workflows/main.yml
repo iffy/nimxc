@@ -12,7 +12,6 @@ jobs:
       matrix:
         version:
           - binary:1.6.0
-          - binary:1.4.8
         os:
           - ubuntu-latest
           - macOS-latest
@@ -33,7 +32,7 @@ jobs:
     - name: Pass binaries to next step
       uses: actions/upload-artifact@v2
       with:
-        name: binaries-${{ matrix.os }}-${{ matrix.version }}
+        name: binaries-${{ matrix.os }}
         path: _tests/tests/
   run:
     needs: [compile]
