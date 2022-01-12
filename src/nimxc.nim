@@ -98,7 +98,7 @@ const zigcc_name = "zigcc".changeFileExt(ExeExt)
 const nimArchToZigArch = {
   "arm64": "aarch64",
   "amd64": "x86_64",
-  "i386": "x86",
+  "i386": "i386",
 }.toTable()
 
 const nimOStoZigOS = {
@@ -113,7 +113,7 @@ const zigurls = {
 
 proc mkArgs(zig_root: string, cpu: string, os: string): seq[string] =
   ## Return the compiler args for the given target
-  let zig_arch = nimArchToZigArch[cpu]
+  let zig_arch = nimArchToZigArch.getOrDefault(cpu, cpu)
   let zig_os = nimOStoZigOS.getOrDefault(os, os)
   @[
     "--cc:clang",
