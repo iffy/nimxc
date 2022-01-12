@@ -77,17 +77,21 @@ proc install_zig(src_url: string, toolchains: string) =
   echo "Ensuring zigcc is present ..."
   let zigcc = absolutePath(dstsubdir / "zigcc").changeFileExt(ExeExt)
   if not zigcc.fileExists:
-    writeFile(zigcc.changeFileExt("nim"), unindent(&"""
+    writeFile(zigcc.changeFileExt("nim"), dedent(&"""
       import std/osproc
       import std/os
       proc main() =
-        var p = startProcess("{zigpath}", args = commandLineParams(), options = {{poParentStreams}})
+        var args = @["cc"]
+        args.add(commandLineParams())
+        var p = startProcess("{zigpath}", args = args, options = {{poParentStreams}})
         defer: p.close()
         quit(p.waitForExit())
       when isMainModule:
         main()
       """))
-    echo execProcess(findExe"nim", args = ["c", "-d:release", zigcc.changeFileExt("nim")])
+    echo execProcess(findExe"nim", args = ["c", "-d:release", "-o:" & zigcc, zigcc.changeFileExt("nim")], options={poStdErrToStdOut})
+    if not zigcc.fileExists:
+      raise ValueError.newException("Failed to compile zigcc")
     # setFilePermissions(dstsubdir / "zigcc.sh", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
   echo zigcc.extractFilename, " present: " & zigcc
 
