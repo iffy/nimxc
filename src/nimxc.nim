@@ -175,12 +175,12 @@ frm "linux-amd64":
       @[
         "--cc:clang",
         "--cpu:amd64",
-        "--os:linux",
-        "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:" & zigcc_name,
-        "--amd64.linux.clang.linkerexe:" & zigcc_name,
-        "--passC:-target x86_64-linux",
-        "--passL:-target x86_64-linux",
+        "--os:windows",
+        "--amd64.windows.clang.path:" & absolutePath(toolchains / subdir),
+        "--amd64.windows.clang.exe:" & zigcc_name,
+        "--amd64.windows.clang.linkerexe:" & zigcc_name,
+        "--passC:-target x86_64-windows",
+        "--passL:-target x86_64-windows",
       ]
 
 #----------------------------------------------------------------------
