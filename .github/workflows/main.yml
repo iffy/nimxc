@@ -65,6 +65,7 @@ jobs:
         nimxc this
         set +x
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
+          echo ''
           echo '-------------------------------------------------------'
           echo "$dname"
           fname="${dname}/main"
