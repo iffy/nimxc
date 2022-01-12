@@ -108,7 +108,10 @@ const nimOStoZigOS = {
 const zigurls = {
   "macosx-amd64": "https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz",
   "linux-amd64": "https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz",
+  "linux-i386": "https://ziglang.org/download/0.9.0/zig-linux-i386-0.9.0.tar.xz",
   "windows-amd64": "https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip",
+  "windows-i386": "https://ziglang.org/download/0.9.0/zig-windows-i386-0.9.0.zip",
+  "windows-aarch64": "https://ziglang.org/download/0.9.0/zig-windows-aarch64-0.9.0.zip",
 }.toTable()
 
 proc mkArgs(zig_root: string, cpu: string, os: string): seq[string] =
@@ -133,7 +136,8 @@ const targets : seq[Target] = @[
   ("linux", "i386"),
   ("linux", "amd64"),
   ("windows", "i386"),
-  ("windows", "amd64"),   
+  ("windows", "amd64"),
+  ("windows", "aarch64"),   
 ]
 
 for host, url in zigurls.pairs:
