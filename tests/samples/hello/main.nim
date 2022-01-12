@@ -1,1 +1,1 @@
-echo "Hello, world!"
+stdout.write "Hello, world!"
