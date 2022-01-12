@@ -8,7 +8,6 @@ jobs:
   compile:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
         version:
           - binary:1.6.0
