@@ -22,22 +22,22 @@ proc `$`(t: Target): string = &"{t.os}-{t.cpu}"
 
 var host_systems* = newTable[Pair, TableRef[Pair, Bundle]]()
 const THIS_HOST*: Pair = &"{hostOS}-{hostCPU}"
-var this_host_possible_targets {.compileTime.} : seq[string]
+# var this_host_possible_targets {.compileTime.} : seq[string]
 
-template frm(host: Pair, outer: untyped): untyped =
-  block:
-    template target(target: Pair, inner: untyped): untyped =
-      block:
-        if not host_systems.hasKey(host):
-          host_systems[host] = newTable[Pair, Bundle]()
-        inner
-        let install_proc: InstallProc = install
-        let args_proc: ArgsProc = args
-        host_systems[host][target] = (install_proc, args_proc)
-        static:
-          if host == THIS_HOST:
-            this_host_possible_targets.add(target)
-    outer
+# template frm(host: Pair, outer: untyped): untyped =
+#   block:
+#     template target(target: Pair, inner: untyped): untyped =
+#       block:
+#         if not host_systems.hasKey(host):
+#           host_systems[host] = newTable[Pair, Bundle]()
+#         inner
+#         let install_proc: InstallProc = install
+#         let args_proc: ArgsProc = args
+#         host_systems[host][target] = (install_proc, args_proc)
+#         static:
+#           if host == THIS_HOST:
+#             this_host_possible_targets.add(target)
+#     outer
 
 proc targetExeExt*(target: Pair): string =
   if "windows" in target:
@@ -111,17 +111,17 @@ const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
 # See https://nim-lang.org/docs/system.html#hostCPU for possible CPU arch values
 
-let nimArchToZigArch = {
+const nimArchToZigArch = {
   "arm64": "aarch64",
   "amd64": "x86_64",
   "i386": "x86",
 }.toTable()
 
-let nimOStoZigOS = {
+const nimOStoZigOS = {
   "macosx": "macos",
 }.toTable()
 
-let zigurls = {
+const zigurls = {
   "macosx-amd64": "https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz",
   "linux-amd64": "https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz",
   "windows-amd64": "https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip",
@@ -143,7 +143,7 @@ proc mkArgs(zig_root: string, cpu: string, os: string): seq[string] =
   ]
 
 #----------------------------------------------------------------------
-let targets: seq[Target] = @[
+const targets : seq[Target] = @[
   ("macosx", "amd64"),
   ("macosx", "arm64"),
   ("linux", "i386"),
@@ -151,8 +151,10 @@ let targets: seq[Target] = @[
   ("windows", "i386"),
   ("windows", "amd64"),   
 ]
+
 for host, url in zigurls.pairs:
-  block:
+  closureScope:
+    var url = url
     if not host_systems.hasKey(host):
       host_systems[host] = newTable[Pair, Bundle]()
     let arname = url.extractFilename
@@ -163,15 +165,16 @@ for host, url in zigurls.pairs:
     else:
       arname.changeFileExt("")
     for target in targets:
-      proc install(toolchains: string) =
-        install_zig(url, toolchains)
-      proc args(toolchains: string): seq[string] =
-        let zig_root = absolutePath(toolchains / dirname)
-        mkArgs(zig_root, target.cpu, target.os)
-      let install_proc: InstallProc = install
-      let args_proc: ArgsProc = args
-      
-      host_systems[host][$target] = (install_proc, args_proc)
+      let targ: Target = (target.os, target.cpu)
+      closureScope:
+        proc install(toolchains: string) {.closure.} =
+          install_zig(url, toolchains)
+        proc args(toolchains: string): seq[string] {.closure.} =
+          let zig_root = absolutePath(toolchains / dirname)
+          mkArgs(zig_root, targ.cpu, targ.os)
+        let install_proc: InstallProc = install
+        let args_proc: ArgsProc = args
+        host_systems[host][$targ] = (install_proc, args_proc)
 
 # add nop targets for the host itself
 for key in host_systems.keys:
@@ -252,7 +255,7 @@ when isMainModule:
         echo $THIS_HOST
     command("c"):
       help("Compile a nim file for the given target")
-      option("-t", "--target", help="Target system.", choices=this_host_possible_targets)
+      option("-t", "--target", help="Target system.")
       option("-d", "--directory", help="Directory where toolchains were installed", default=some(DEFAULT_TOOLCHAIN_DIR))
       arg("args", nargs = -1, help="Options to be passed directly to 'nim c'")
       run:
