@@ -251,7 +251,7 @@ when isMainModule:
   
   var p = newParser:
     command("install"):
-      option("-t", "--target", help="Target system.", choices=this_host_possible_targets)
+      option("target", help="Target system.", choices=this_host_possible_targets)
       option("-d", "--directory", help="Directory in which to install toolchains", default=some(DEFAULT_TOOLCHAIN_DIR))
       help("Install the toolchains to cross compile for --target")
       run:

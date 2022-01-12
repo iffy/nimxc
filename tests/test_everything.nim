@@ -12,12 +12,10 @@ echo "Hello, world!"
 """
 const sample_output = "Hello, world!\n"
 
-const toolchains_root = "_tests/toolchains"
+let toolchains_root = absolutePath(currentSourcePath.parentDir.parentDir / "_tests/toolchains")
 createDir(toolchains_root)
-proc toolchain_dir(target: Pair): string =
-  toolchains_root / target
 
-const testdir_root = "_tests/tests"
+let testdir_root = absolutePath(currentSourcePath.parentDir.parentDir / "_tests/tests")
 removeDir(testdir_root)
 
 proc testdir(name: string): string =
