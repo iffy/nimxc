@@ -9,15 +9,20 @@ import zippy/ziparchives
 
 type
   Pair* = string
+  Target = tuple
+    os: string
+    cpu: string
   InstallProc = proc(dir: string): void {.closure.}
   ArgsProc = proc(dir: string): seq[string] {.closure.}
   Bundle = tuple
     install: InstallProc
     args: ArgsProc
 
+proc `$`(t: Target): string = &"{t.os}-{t.cpu}"
+
 var host_systems* = newTable[Pair, TableRef[Pair, Bundle]]()
 const THIS_HOST*: Pair = &"{hostOS}-{hostCPU}"
-var this_host_possible_targets {.compileTime.} : seq[Pair] 
+var this_host_possible_targets {.compileTime.} : seq[string]
 
 template frm(host: Pair, outer: untyped): untyped =
   block:
@@ -106,103 +111,69 @@ const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
 # See https://nim-lang.org/docs/system.html#hostCPU for possible CPU arch values
 
-#----------------------------------------------------------------------
-frm "macosx-amd64":
-  let subdir = "zig-macos-x86_64-0.9.0"
-  proc install(toolchains: string) =
-    install_zig("https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz", toolchains)  
-  
-  target "macosx-arm64":
-    proc args(toolchains: string): seq[string] =
-      @[
-        "--cc:clang",
-        "--cpu:arm64",
-        "--os:macosx",
-        "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--arm64.macosx.clang.exe:" & zigcc_name,
-        "--arm64.macosx.clang.linkerexe:" & zigcc_name,
-        "--passC:-target aarch64-macos",
-        "--passL:-target aarch64-macos",
-      ]
-  
-  target "linux-amd64":
-    proc args(toolchains: string): seq[string] =
-      @[
-        "--cc:clang",
-        "--cpu:amd64",
-        "--os:linux",
-        "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:" & zigcc_name,
-        "--amd64.linux.clang.linkerexe:" & zigcc_name,
-        "--passC:-target x86_64-linux",
-        "--passL:-target x86_64-linux",
-      ]
+let nimArchToZigArch = {
+  "arm64": "aarch64",
+  "amd64": "x86_64",
+  "i386": "x86",
+}.toTable()
+
+let nimOStoZigOS = {
+  "macosx": "macos",
+}.toTable()
+
+let zigurls = {
+  "macosx-amd64": "https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz",
+  "linux-amd64": "https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz",
+  "windows-amd64": "https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip",
+}.toTable()
+
+proc mkArgs(zig_root: string, cpu: string, os: string): seq[string] =
+  ## Return the compiler args for the given target
+  let zig_arch = nimArchToZigArch[cpu]
+  let zig_os = nimOStoZigOS.getOrDefault(os, os)
+  @[
+    "--cc:clang",
+    "--cpu:" & cpu,
+    "--os:" & os,
+    &"--{cpu}.{os}.clang.path:{zig_root}",
+    &"--{cpu}.{os}.clang.exe:{zigcc_name}",
+    &"--{cpu}.{os}.clang.linkerexe:{zigcc_name}",
+    &"--passC:-target {zig_arch}-{zig_os}",
+    &"--passL:-target {zig_arch}-{zig_os}",
+  ]
 
 #----------------------------------------------------------------------
-frm "linux-amd64":
-  let subdir = "zig-linux-x86_64-0.9.0"
-  proc install(toolchains: string) =
-    install_zig("https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz", toolchains)
-  
-  target "macosx-amd64":
-    proc args(toolchains: string): seq[string] =
-      @[
-        "--cc:clang",
-        "--cpu:amd64",
-        "--os:macosx",
-        "--amd64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.macosx.clang.exe:" & zigcc_name,
-        "--amd64.macosx.clang.linkerexe:" & zigcc_name,
-        "--passC:-target x86_64-macos",
-        "--passL:-target x86_64-macos",
-      ]
-  
-  target "macosx-arm64":
-    proc args(toolchains: string): seq[string] =
-      @[
-        "--cc:clang",
-        "--cpu:arm64",
-        "--os:macosx",
-        "--arm64.macosx.clang.path:" & absolutePath(toolchains / subdir),
-        "--arm64.macosx.clang.exe:" & zigcc_name,
-        "--arm64.macosx.clang.linkerexe:" & zigcc_name,
-        "--passC:-target aarch64-macos",
-        "--passL:-target aarch64-macos",
-      ]
+let targets: seq[Target] = @[
+  ("macosx", "amd64"),
+  ("macosx", "arm64"),
+  ("linux", "i386"),
+  ("linux", "amd64"),
+  ("windows", "i386"),
+  ("windows", "amd64"),   
+]
+for host, url in zigurls.pairs:
+  block:
+    if not host_systems.hasKey(host):
+      host_systems[host] = newTable[Pair, Bundle]()
+    let arname = url.extractFilename
+    let dirname = if arname.endsWith(".zip"):
+      arname.changeFileExt("")
+    elif arname.endsWith(".tar.xz"):
+      arname.changeFileExt("").changeFileExt("")
+    else:
+      arname.changeFileExt("")
+    for target in targets:
+      proc install(toolchains: string) =
+        install_zig(url, toolchains)
+      proc args(toolchains: string): seq[string] =
+        let zig_root = absolutePath(toolchains / dirname)
+        mkArgs(zig_root, target.cpu, target.os)
+      let install_proc: InstallProc = install
+      let args_proc: ArgsProc = args
+      
+      host_systems[host][$target] = (install_proc, args_proc)
 
-  target "windows-amd64":
-    proc args(toolchains: string): seq[string] =
-      @[
-        "--cc:clang",
-        "--cpu:amd64",
-        "--os:windows",
-        "--amd64.windows.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.windows.clang.exe:" & zigcc_name,
-        "--amd64.windows.clang.linkerexe:" & zigcc_name,
-        "--passC:-target x86_64-windows",
-        "--passL:-target x86_64-windows",
-      ]
-
-#----------------------------------------------------------------------
-frm "windows-amd64":
-  let subdir = "zig-windows-x86_64-0.9.0"
-  proc install(toolchains: string) =
-    install_zig("https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip", toolchains)
-  
-  target "linux-amd64":
-    proc args(toolchains: string): seq[string] =
-      @[
-        "--cc:clang",
-        "--cpu:amd64",
-        "--os:linux",
-        "--amd64.linux.clang.path:" & absolutePath(toolchains / subdir),
-        "--amd64.linux.clang.exe:" & zigcc_name,
-        "--amd64.linux.clang.linkerexe:" & zigcc_name,
-        "--passC:-target x86_64-linux",
-        "--passL:-target x86_64-linux",
-      ]
-
-#----------------------------------------------------------------------
+# add nop targets for the host itself
 for key in host_systems.keys:
   block:
     proc install(toolchains: string) = discard
@@ -251,13 +222,13 @@ when isMainModule:
   
   var p = newParser:
     command("install"):
-      option("target", help="Target system.", choices=this_host_possible_targets)
+      option("target", help="Target system.")
       option("-d", "--directory", help="Directory in which to install toolchains", default=some(DEFAULT_TOOLCHAIN_DIR))
       help("Install the toolchains to cross compile for --target")
       run:
         THIS_HOST.install_toolchain(opts.target, opts.directory)
     command("args"):
-      option("-t", "--target", help="Target system.", choices=this_host_possible_targets)
+      option("-t", "--target", help="Target system.")
       option("-d", "--directory", help="Directory where toolchains were installed", default=some(DEFAULT_TOOLCHAIN_DIR))
       help("Show nim args needed to cross compile for --target")
       run:
