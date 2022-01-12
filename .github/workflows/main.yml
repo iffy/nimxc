@@ -66,6 +66,8 @@ jobs:
         find binaries*
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
           echo "$dname"
+          chmod u+x "${dname}/main"
           "${dname}/main" | tee "${dname}/output.txt"
+          diff "${dname}/output.txt" "${dname}/expected.txt"
         done
 # TODO: test other binaries using qemu
