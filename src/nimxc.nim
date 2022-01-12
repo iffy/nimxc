@@ -22,22 +22,6 @@ proc `$`(t: Target): string = &"{t.os}-{t.cpu}"
 
 var host_systems* = newTable[Pair, TableRef[Pair, Bundle]]()
 const THIS_HOST*: Pair = &"{hostOS}-{hostCPU}"
-# var this_host_possible_targets {.compileTime.} : seq[string]
-
-# template frm(host: Pair, outer: untyped): untyped =
-#   block:
-#     template target(target: Pair, inner: untyped): untyped =
-#       block:
-#         if not host_systems.hasKey(host):
-#           host_systems[host] = newTable[Pair, Bundle]()
-#         inner
-#         let install_proc: InstallProc = install
-#         let args_proc: ArgsProc = args
-#         host_systems[host][target] = (install_proc, args_proc)
-#         static:
-#           if host == THIS_HOST:
-#             this_host_possible_targets.add(target)
-#     outer
 
 proc targetExeExt*(target: Pair): string =
   if "windows" in target:
@@ -154,10 +138,11 @@ const targets : seq[Target] = @[
 
 for host, url in zigurls.pairs:
   closureScope:
-    var url = url
-    if not host_systems.hasKey(host):
-      host_systems[host] = newTable[Pair, Bundle]()
-    let arname = url.extractFilename
+    let this_host = host
+    let this_url = url
+    if not host_systems.hasKey(this_host):
+      host_systems[this_host] = newTable[Pair, Bundle]()
+    let arname = this_url.extractFilename
     let dirname = if arname.endsWith(".zip"):
       arname.changeFileExt("")
     elif arname.endsWith(".tar.xz"):
@@ -167,11 +152,13 @@ for host, url in zigurls.pairs:
     for target in targets:
       let targ: Target = (target.os, target.cpu)
       closureScope:
+        let cpu = targ.cpu
+        let os = targ.os
         proc install(toolchains: string) {.closure.} =
-          install_zig(url, toolchains)
+          install_zig(this_url, toolchains)
         proc args(toolchains: string): seq[string] {.closure.} =
           let zig_root = absolutePath(toolchains / dirname)
-          mkArgs(zig_root, targ.cpu, targ.os)
+          mkArgs(zig_root, cpu, os)
         let install_proc: InstallProc = install
         let args_proc: ArgsProc = args
         host_systems[host][$targ] = (install_proc, args_proc)
@@ -184,7 +171,6 @@ for key in host_systems.keys:
     let install_proc: InstallProc = install
     let args_proc: ArgsProc = args
     host_systems[key][key] = (install_proc, args_proc)
-
 
 #======================================================================
 
