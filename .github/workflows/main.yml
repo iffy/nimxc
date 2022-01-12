@@ -33,7 +33,7 @@ jobs:
     - name: Pass binaries to next step
       uses: actions/upload-artifact@v2
       with:
-        name: binaries-${{ matrix.os }}
+        name: binaries-${{ matrix.os }}-${{ matrix.version }}
         path: _tests/tests/
   run:
     needs: [compile]
