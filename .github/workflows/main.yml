@@ -76,6 +76,6 @@ jobs:
           chmod u+x "$fname"
           file "$fname"
           "$fname" | tee "${dname}/output.txt"
-          diff "${dname}/expected.txt" "${dname}/output.txt"
+          diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
         done
 # TODO: test other binaries using qemu
