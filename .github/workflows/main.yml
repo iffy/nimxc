@@ -74,6 +74,7 @@ jobs:
             fname="${fname}.exe"
           fi
           chmod u+x "$fname"
+          file "$fname"
           "$fname" | tee "${dname}/output.txt"
           diff "${dname}/expected.txt" "${dname}/output.txt"
         done
