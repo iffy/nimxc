@@ -123,6 +123,8 @@ proc mkArgs(zig_root: string, cpu: string, os: string): seq[string] =
     "--cc:clang",
     "--cpu:" & cpu,
     "--os:" & os,
+    &"-d:nimxc_host_os_" & hostOS,
+    $"-d:nimxc_host_cpu_" & hostCPU,
     &"--{cpu}.{os}.clang.path:{zig_root}",
     &"--{cpu}.{os}.clang.exe:{zigcc_name}",
     &"--{cpu}.{os}.clang.linkerexe:{zigcc_name}",

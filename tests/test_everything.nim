@@ -7,6 +7,13 @@ import std/unittest
 
 import nimxc
 
+var toskip = [
+  "ssl_from_windows-amd64_to_linux-amd64",
+  "ssl_from_macosx-amd64_to_linux-amd64",
+  "regex_from_windows-amd64_to_linux-amd64",
+  "regex_from_macosx-amd64_to_linux-amd64",
+]
+
 var samples: seq[string]
 for item in (currentSourcePath.parentDir / "samples").walkDir:
   if item.kind == pcDir:
@@ -26,6 +33,8 @@ if host_systems.hasKey(THIS_HOST):
   for target in host_systems[THIS_HOST].keys:
     for sample in samples:
       let testname = sample.extractFilename & "_from_" & THIS_HOST & "_to_" & target
+      if testname in toskip:
+        continue
       test testname:
         echo "-".repeat(60)
         echo testname

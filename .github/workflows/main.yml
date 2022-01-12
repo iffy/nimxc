@@ -63,9 +63,9 @@ jobs:
         set -x
         ls -al
         nimxc this
-        find binaries*
         set +x
         for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
+          echo ''
           echo '-------------------------------------------------------'
           echo "$dname"
           fname="${dname}/main"
@@ -74,6 +74,11 @@ jobs:
           fi
           chmod u+x "$fname"
           file "$fname"
+          if [ "$(uname)" == "Darwin" ]; then
+            otool -L "$fname" || true
+          else
+            ldd "$fname" || true
+          fi
           "$fname" | tee "${dname}/output.txt"
           diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
           echo ""
