@@ -143,7 +143,7 @@ proc mkArgs(zig_root: string, target: Target): seq[string] =
 const targets : seq[Target] = @[
   ("macosx", "amd64", ""),
   ("macosx", "arm64", ""),
-  ("linux", "i386", "gnu.2.24"),
+  ("linux", "i386", ""),
   ("linux", "amd64", "gnu.2.24"),
   ("windows", "i386", ""),
   ("windows", "amd64", ""),
