@@ -32,10 +32,10 @@ nim --version
 nimxc c --target ...
 ```
 
-** Output **
+**Output**
 
 ```
 ...
 ```
 
-** Anything else **
+**Anything else**
