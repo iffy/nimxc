@@ -12,11 +12,12 @@ nimble install https://github.com/iffy/nimxc.git
 ## Usage
 
 ```
-# Install the cross-compiler toolchain for 64-bit Linux
-nimxc install --target linux-amd64
-
 # Compile `foo.nim` for 64-bit Linux
 nimxc c --target linux-amd64 foo.nim
+# or Intel macOS
+nimxc c --target macosx-amd64 foo.nim
+# or M1 macOS
+nimxc c --target macosx-arm64 foo.nim
 
 # see more
 nimxc --help
@@ -24,6 +25,8 @@ nimxc --help
 
 ## Platform support
 
+The following hosts and targets are supported except for some situations captured in [Issues](issues).
+Some dynamic libraries aren't working yet.
 Generated from running `nimxc list --all`:
 
 ```
@@ -79,4 +82,4 @@ From windows-i386
 
 ## How it works
 
-It uses [`zig cc`](https://ziglang.org/) as the compiler.
+It uses [`zig cc`](https://ziglang.org/) as the compiler. Thanks, Zig!

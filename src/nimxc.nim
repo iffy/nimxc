@@ -35,25 +35,24 @@ proc targetExeExt*(target: Pair): string =
 #======================================================================
 
 proc install_zig(src_url: string, toolchains: string) =
-  # download it
   let dlcache = toolchains / "download"
-  createDir(dlcache)
   let dlfilename = dlcache / src_url.extractFilename()
-  if not dlfilename.fileExists:
-    echo &"Downloading {src_url} to {dlfilename} ..."
-    let client = newHttpClient()
-    defer: client.close()
-    client.downloadFile(src_url, dlfilename)
-    # TODO: verify the checksum
-  else:
-    echo &"Already downloaded {src_url}"
-  
-  # extract it
   let dstsubdir = if dlfilename.endsWith(".zip"):
       toolchains / dlfilename.extractFilename.changeFileExt("")
     else:
       toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
+  let zigpath = absolutePath(dstsubdir / "zig").changeFileExt(ExeExt)
+  let zigcc = absolutePath(dstsubdir / "zigcc").changeFileExt(ExeExt)
+  
   if not dstsubdir.dirExists:
+    if not dlfilename.fileExists:
+      # download it
+      createDir(dlcache)
+      echo &"Downloading {src_url} to {dlfilename} ..."
+      let client = newHttpClient()
+      defer: client.close()
+      client.downloadFile(src_url, dlfilename)
+    # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
       let tmpdir = toolchains / "tmp"
@@ -64,13 +63,8 @@ proc install_zig(src_url: string, toolchains: string) =
         args=["-x", "-C", toolchains, "-f", dlfilename],
         options={poStdErrToStdOut, poParentStreams})
       doAssert p.waitForExit() == 0
-  else:
-    echo "Already installed: " & dstsubdir
   
   # make zigcc
-  let zigpath = absolutePath(dstsubdir / "zig").changeFileExt(ExeExt)
-  echo "Ensuring zigcc is present ..."
-  let zigcc = absolutePath(dstsubdir / "zigcc").changeFileExt(ExeExt)
   if not zigcc.fileExists:
     let zigpath_escaped = zigpath.replace("\\", "\\\\")
     writeFile(zigcc.changeFileExt("nim"), dedent(&"""
@@ -85,12 +79,12 @@ proc install_zig(src_url: string, toolchains: string) =
       when isMainModule:
         main()
       """))
-    echo execProcess(findExe"nim", args = ["c", "-d:release", "-o:" & zigcc, zigcc.changeFileExt("nim")], options={poStdErrToStdOut})
+    let output = execProcess(findExe"nim", args = ["c", "-d:release", "-o:" & zigcc, zigcc.changeFileExt("nim")], options={poStdErrToStdOut})
     if not zigcc.fileExists:
+      echo output
       echo readFile(zigcc.changeFileExt("nim"))
       raise ValueError.newException("Failed to compile zigcc")
-    # setFilePermissions(dstsubdir / "zigcc.sh", {fpUserRead, fpUserWrite, fpUserExec, fpGroupRead, fpGroupWrite, fpGroupExec})
-  echo zigcc.extractFilename, " present: " & zigcc
+    echo "Created zigcc at ", zigcc
 
 const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
@@ -251,8 +245,11 @@ when isMainModule:
     command("c"):
       help("Compile a nim file for the given target")
       option("-t", "--target", help="Target system.")
+      flag("--no-auto-install", help="If given, don't attempt to install the toolchain if it's missing")
       option("-d", "--directory", help="Directory where toolchains were installed", default=some(DEFAULT_TOOLCHAIN_DIR))
       arg("args", nargs = -1, help="Options to be passed directly to 'nim c'")
       run:
+        if not opts.no_auto_install:
+          THIS_HOST.install_toolchain(opts.target, opts.directory)
         quit(THIS_HOST.exec_nim_c(opts.target, opts.directory, opts.args))
   p.run()
