@@ -32,10 +32,18 @@ nim --version
 nimxc c --target ...
 ```
 
-**Output**
+**Compilation output**
 
 ```
 ...
+```
+
+**Runtime output**
+
+<!-- If compilation succeeds, but running fails, include that output along with how you are running the program -->
+
+```
+./myprogram args args
 ```
 
 **Anything else**
