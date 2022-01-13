@@ -25,7 +25,7 @@ nimxc --help
 
 ## Platform support
 
-The following hosts and targets are supported except for some situations captured in [Issues](issues).
+The following hosts and targets are supported except for some situations captured in [Issues](https://github.com/iffy/nimxc/issues).
 Some dynamic libraries aren't working yet.
 Generated from running `nimxc list --all`:
 
