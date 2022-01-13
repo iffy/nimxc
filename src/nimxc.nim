@@ -13,13 +13,22 @@ type
   Target = tuple
     os: string
     cpu: string
+    extra: string
   InstallProc = proc(dir: string): void {.closure.}
   ArgsProc = proc(dir: string): seq[string] {.closure.}
   Bundle = tuple
     install: InstallProc
     args: ArgsProc
 
-proc `$`(t: Target): string = &"{t.os}-{t.cpu}"
+proc `$`(t: Target): string =
+  result = &"{t.os}-{t.cpu}"
+  if t.extra != "":
+    result.add "-" & t.extra
+
+proc zigfmt(t: Target): string =
+  result = &"{t.cpu}-{t.os}"
+  if t.extra != "":
+    result.add "-" & t.extra
 
 var host_systems* = newTable[Pair, TableRef[Pair, Bundle]]()
 const THIS_HOST*: Pair = &"{hostOS}-{hostCPU}"
@@ -109,32 +118,36 @@ const zigurls = {
   "windows-arm64": "https://ziglang.org/download/0.9.0/zig-windows-aarch64-0.9.0.zip",
 }.toTable()
 
-proc mkArgs(zig_root: string, cpu: string, os: string): seq[string] =
+
+proc mkArgs(zig_root: string, target: Target): seq[string] =
   ## Return the compiler args for the given target
-  let zig_arch = nimArchToZigArch.getOrDefault(cpu, cpu)
-  let zig_os = nimOStoZigOS.getOrDefault(os, os)
+  var zig_target = (
+    nimOStoZigOS.getOrDefault(target.os, target.os),
+    nimArchToZigArch.getOrDefault(target.cpu, target.cpu),
+    target.extra,
+  )
   @[
     "--cc:clang",
-    "--cpu:" & cpu,
-    "--os:" & os,
+    "--cpu:" & target.cpu,
+    "--os:" & target.os,
     &"-d:nimxc_host_os_" & hostOS,
     $"-d:nimxc_host_cpu_" & hostCPU,
-    &"--{cpu}.{os}.clang.path:{zig_root}",
-    &"--{cpu}.{os}.clang.exe:{zigcc_name}",
-    &"--{cpu}.{os}.clang.linkerexe:{zigcc_name}",
-    &"--passC:-target {zig_arch}-{zig_os}",
-    &"--passL:-target {zig_arch}-{zig_os}",
+    &"--{target.cpu}.{target.os}.clang.path:{zig_root}",
+    &"--{target.cpu}.{target.os}.clang.exe:{zigcc_name}",
+    &"--{target.cpu}.{target.os}.clang.linkerexe:{zigcc_name}",
+    &"--passC:-target {zig_target.zigfmt} -fno-sanitize=undefined",
+    &"--passL:-target {zig_target.zigfmt} -fno-sanitize=undefined",
   ]
 
 #----------------------------------------------------------------------
 const targets : seq[Target] = @[
-  ("macosx", "amd64"),
-  ("macosx", "arm64"),
-  ("linux", "i386"),
-  ("linux", "amd64"),
-  ("windows", "i386"),
-  ("windows", "amd64"),
-  ("windows", "arm64"),   
+  ("macosx", "amd64", ""),
+  ("macosx", "arm64", ""),
+  ("linux", "i386", "gnu.2.24"),
+  ("linux", "amd64", "gnu.2.24"),
+  ("windows", "i386", ""),
+  ("windows", "amd64", ""),
+  ("windows", "arm64", ""),   
 ]
 
 for host, url in zigurls.pairs:
@@ -151,18 +164,17 @@ for host, url in zigurls.pairs:
     else:
       arname.changeFileExt("")
     for target in targets:
-      let targ: Target = (target.os, target.cpu)
+      let targ: Target = (target.os, target.cpu, target.extra) # this is for closure purposes
       closureScope:
-        let cpu = targ.cpu
-        let os = targ.os
+        let this_targ: Target = (targ.os, targ.cpu, targ.extra)
         proc install(toolchains: string) {.closure.} =
           install_zig(this_url, toolchains)
         proc args(toolchains: string): seq[string] {.closure.} =
           let zig_root = absolutePath(toolchains / dirname)
-          mkArgs(zig_root, cpu, os)
+          mkArgs(zig_root, this_targ)
         let install_proc: InstallProc = install
         let args_proc: ArgsProc = args
-        host_systems[host][$targ] = (install_proc, args_proc)
+        host_systems[host][$this_targ] = (install_proc, args_proc)
 
 # add nop targets for the host itself
 for key in host_systems.keys:
