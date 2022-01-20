@@ -124,6 +124,6 @@ jobs:
         comm -23 <(sort -u noresult) <(sort -u hasresult) > missing
         echo "UNTESTED"
         echo "--------------------------------------------"
-        cat missing
+        sort -u missing
         
 # TODO: test other binaries using qemu

@@ -145,7 +145,7 @@ const targets : seq[Target] = @[
   ("macosx", "arm64", ""),
   ("linux", "i386", ""),
   ("linux", "amd64", ""),
-  ("linux", "amd64", "gnu.2.27"),
+  # ("linux", "amd64", "gnu.2.27"),
   ("linux", "amd64", "gnu.2.28"),
   ("windows", "i386", ""),
   ("windows", "amd64", ""),
