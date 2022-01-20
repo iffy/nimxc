@@ -12,8 +12,8 @@ var toskip = [
   "ssl_from_macosx-amd64_to_linux-amd64",
   "sqlite_from_windows-amd64_to_linux-amd64-gnu.2.27",
   "sqlite_from_macosx-amd64_to_linux-amd64-gnu.2.27"
-  # "regex_from_windows-amd64_to_linux-amd64",
-  # "regex_from_macosx-amd64_to_linux-amd64",
+  "regex_from_windows-amd64_to_linux-amd64"
+  "regex_from_macosx-amd64_to_linux-amd64",
 ]
 
 var samples: seq[string]
