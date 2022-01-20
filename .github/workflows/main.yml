@@ -64,7 +64,9 @@ jobs:
     - name: Untar binaries
       shell: bash
       run: |
-        tar xf binaries-*/*.tgz
+        for fname in $(ls binaries-*/*.tgz); do
+          tar xf "$fname"
+        done
     - name: Run the ones compiled for this OS
       shell: bash
       run: |
@@ -112,7 +114,9 @@ jobs:
       uses: actions/download-artifact@v2
     - shell: bash
       run: |
-        tar xf results-*/*.tgz
+        for fname in $(ls results-*/*.tgz); do
+          tar xf "$fname"
+        done
     - name: List the ones with and without results
       shell: bash
       run: |
