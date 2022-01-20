@@ -144,6 +144,8 @@ const targets : seq[Target] = @[
   ("macosx", "amd64", ""),
   ("macosx", "arm64", ""),
   ("linux", "i386", ""),
+  ("linux", "amd64", ""),
+  ("linux", "amd64", "gnu.2.27"),
   ("linux", "amd64", "gnu.2.28"),
   ("windows", "i386", ""),
   ("windows", "amd64", ""),
@@ -221,6 +223,21 @@ proc exec_nim_c*(host: Pair, target: Pair, toolchains: string, args: openArray[s
   defer: p.close()
   p.waitForExit()
 
+proc all_host_archs*(): seq[string] =
+  ## Return all possible architectures/targets defining this host system
+  when defined(linux):
+    result.add THIS_HOST
+    result.add THIS_HOST & "-musl"
+    let ldd = findExe"ldd"
+    if ldd != "":
+      let res = execCmdEx("ldd --version")
+      # ldd (Ubuntu GLIBC 2.27-3ubuntu1) 2.27
+      if res.exitCode == 0:
+        let version = res.output.splitLines()[0].split(" ")[^1]
+        result.add THIS_HOST & "-gnu." & version
+  else:
+    return @[THIS_HOST]
+
 when isMainModule:
   import std/algorithm
   import argparse
@@ -252,8 +269,13 @@ when isMainModule:
             echo &"--target {targ}"
     command("this"):
       help("Return this machine's architecture and os")
+      flag("-a", "--all", help="Show all possible architectures/ABIs supported by this host machine")
       run:
-        echo $THIS_HOST
+        if opts.all:
+          for line in all_host_archs():
+            echo line
+        else:
+          echo $THIS_HOST
     command("c"):
       help("Compile a nim file for the given target")
       option("-t", "--target", help="Target system.")

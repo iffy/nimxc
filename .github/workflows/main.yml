@@ -64,24 +64,26 @@ jobs:
         ls -al
         nimxc this
         set +x
-        for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
-          echo ''
-          echo '-------------------------------------------------------'
-          echo "$dname"
-          fname="${dname}/main"
-          if [ -f "${fname}.exe" ]; then
-            fname="${fname}.exe"
-          fi
-          chmod u+x "$fname"
-          file "$fname"
-          if [ "$(uname)" == "Darwin" ]; then
-            otool -L "$fname" || true
-          else
-            ldd "$fname" || true
-          fi
-          "$fname" | tee "${dname}/output.txt"
-          diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
-          echo ""
+        for hostarch in "$(nimxc this --all)"; do
+          for dname in $(find . -type d -name "*_to_${hostarch}"); do
+            echo ''
+            echo '-------------------------------------------------------'
+            echo "$dname"
+            fname="${dname}/main"
+            if [ -f "${fname}.exe" ]; then
+              fname="${fname}.exe"
+            fi
+            chmod u+x "$fname"
+            file "$fname"
+            if [ "$(uname)" == "Darwin" ]; then
+              otool -L "$fname" || true
+            else
+              ldd "$fname" || true
+            fi
+            "$fname" | tee "${dname}/output.txt"
+            diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
+            echo ""
+          done
         done
     - name: Pass test results to next step
       uses: actions/upload-artifact@v2
@@ -113,11 +115,11 @@ jobs:
         done
         echo "no result"
         echo "--------------------------------------------"
-        cat noresult
+        sort -u noresult
         echo ""
         echo "TESTED"
         echo "--------------------------------------------"
-        cat hasresult
+        sort -u hasresult
         echo ""
         comm -23 <(sort -u noresult) <(sort -u hasresult) > missing
         echo "UNTESTED"
