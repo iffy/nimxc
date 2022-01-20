@@ -64,7 +64,7 @@ jobs:
     - name: Untar binaries
       shell: bash
       run: |
-        tar xf binaries-*.tgz
+        tar xf binaries-*/*.tgz
     - name: Run the ones compiled for this OS
       shell: bash
       run: |
@@ -112,13 +112,13 @@ jobs:
       uses: actions/download-artifact@v2
     - shell: bash
       run: |
-        tar xf results-*.tgz
+        tar xf results-*/*.tgz
     - name: List the ones with and without results
       shell: bash
       run: |
         echo > noresult
         echo > hasresult
-        for fname in $(find _tests/tests -type f -name "expected.txt"); do
+        for fname in $(find . -type f -name "expected.txt"); do
           root="$(dirname "$fname")"
           base="$(basename "$root")"
           if [ -f "${root}/output.txt" ]; then
