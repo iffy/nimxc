@@ -83,4 +83,45 @@ jobs:
           diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
           echo ""
         done
+    - name: Pass test results to next step
+      uses: actions/upload-artifact@v2
+      with:
+        name: results-${{ matrix.os }}
+        path: binaries-*
+  find-missing:
+    needs: [run]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get results from prior step
+      uses: actions/download-artifact@v2
+    - name: List the ones with and without results
+      shell: bash
+      run: |
+        echo > noresult
+        echo > hasresult
+        for fname in $(find results-* -type f -name "expected.txt"); do
+          root="$(dirname "$fname")"
+          base="$(basename "$root")"
+          if [ -f "${root}/output.txt" ]; then
+            echo "$base" >> hasresult
+          else
+            echo "$base" >> noresult
+          fi
+        done
+        echo "no result"
+        echo "--------------------------------------------"
+        cat noresult
+        echo ""
+        echo "TESTED"
+        echo "--------------------------------------------"
+        cat hasresult
+        echo ""
+        comm -23 <(sort -u noresult) <(sort -u hasresult) > missing
+        echo "UNTESTED"
+        echo "--------------------------------------------"
+        cat missing
+        
 # TODO: test other binaries using qemu
