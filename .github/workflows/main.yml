@@ -28,11 +28,15 @@ jobs:
         pwd
         nimble install -y
         nimble test
+    - name: Tar up binaries
+      shell: bash
+      run: |
+        tar czvf binaries-${{ matrix.os }}.tgz _tests/tests/
     - name: Pass binaries to next step
       uses: actions/upload-artifact@v2
       with:
         name: binaries-${{ matrix.os }}
-        path: _tests/tests/
+        path: binaries-${{ matrix.os }}.tgz
   run:
     needs: [compile]
     runs-on: ${{ matrix.os }}
@@ -57,30 +61,87 @@ jobs:
         nimble install -y
     - name: Get binaries compiled in prior step
       uses: actions/download-artifact@v2
+    - name: Untar binaries
+      shell: bash
+      run: |
+        for fname in $(ls binaries-*/*.tgz); do
+          tar xf "$fname"
+        done
     - name: Run the ones compiled for this OS
       shell: bash
       run: |
         set -x
         ls -al
-        nimxc this
+        nimxc this --all
         set +x
-        for dname in $(find . -type d -name "*_to_$(nimxc this)"); do
-          echo ''
-          echo '-------------------------------------------------------'
-          echo "$dname"
-          fname="${dname}/main"
-          if [ -f "${fname}.exe" ]; then
-            fname="${fname}.exe"
-          fi
-          chmod u+x "$fname"
-          file "$fname"
-          if [ "$(uname)" == "Darwin" ]; then
-            otool -L "$fname" || true
-          else
-            ldd "$fname" || true
-          fi
-          "$fname" | tee "${dname}/output.txt"
-          diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
-          echo ""
+        for hostarch in $(nimxc this --all); do
+          for dname in $(find . -type d -name "*_to_${hostarch}"); do
+            echo ''
+            echo '-------------------------------------------------------'
+            echo "$dname"
+            fname="${dname}/main"
+            if [ -f "${fname}.exe" ]; then
+              fname="${fname}.exe"
+            fi
+            chmod u+x "$fname"
+            file "$fname"
+            if [ "$(uname)" == "Darwin" ]; then
+              otool -L "$fname" || true
+            else
+              ldd "$fname" || true
+            fi
+            "$fname" | tee "${dname}/output.txt"
+            diff -u <(xxd "${dname}/expected.txt") <(xxd "${dname}/output.txt")
+            echo ""
+          done
         done
+    - shell: bash
+      run: |
+        tar czvf results-${{ matrix.os }}.tgz _tests/tests
+    - name: Pass test results to next step
+      uses: actions/upload-artifact@v2
+      with:
+        name: results-${{ matrix.os }}
+        path: results-${{ matrix.os }}.tgz
+  find-missing:
+    needs: [run]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v1
+    - name: Get results from prior step
+      uses: actions/download-artifact@v2
+    - shell: bash
+      run: |
+        for fname in $(ls results-*/*.tgz); do
+          tar xf "$fname"
+        done
+    - name: List the ones with and without results
+      shell: bash
+      run: |
+        echo > noresult
+        echo > hasresult
+        for fname in $(find . -type f -name "expected.txt"); do
+          root="$(dirname "$fname")"
+          base="$(basename "$root")"
+          if [ -f "${root}/output.txt" ]; then
+            echo "$base" >> hasresult
+          else
+            echo "$base" >> noresult
+          fi
+        done
+        # echo "no result"
+        # echo "--------------------------------------------"
+        # sort -u noresult
+        # echo ""
+        echo "TESTED"
+        echo "--------------------------------------------"
+        sort -u hasresult
+        echo ""
+        comm -23 <(sort -u noresult) <(sort -u hasresult) > missing
+        echo "UNTESTED"
+        echo "--------------------------------------------"
+        sort -u missing
+        
 # TODO: test other binaries using qemu
