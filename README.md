@@ -13,7 +13,7 @@ nimble install https://github.com/iffy/nimxc.git
 
 ```
 # Compile `foo.nim` for 64-bit Linux
-nimxc c --target linux-amd64c foo.nim
+nimxc c --target linux-amd64 foo.nim
 # or Intel macOS
 nimxc c --target macosx-amd64 foo.nim
 # or M1 macOS
