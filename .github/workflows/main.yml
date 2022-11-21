@@ -10,14 +10,14 @@ jobs:
     strategy:
       matrix:
         version:
-          - binary:1.6.0
+          - binary:1.6
         os:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
     steps:
     - uses: actions/checkout@v1
-    - uses: iffy/install-nim@v4.1.1
+    - uses: iffy/install-nim@v4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -40,14 +40,14 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - binary:1.6.0
+          - binary:1.6
         os:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
     steps:
     - uses: actions/checkout@v1
-    - uses: iffy/install-nim@v4.1.1
+    - uses: iffy/install-nim@v4
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
