@@ -29,6 +29,8 @@ proc testdir(name: string): string =
   result = testdir_root / name
   createDir(result)
 
+var failed_tests: seq[string]
+
 if host_systems.hasKey(THIS_HOST):
   for target in host_systems[THIS_HOST].keys:
     for sample in samples:
@@ -62,5 +64,12 @@ if host_systems.hasKey(THIS_HOST):
         defer: p.close()
         let rc = p.waitForExit()
         echo "# rc = ", $rc
-        doAssert rc == 0
-        discard execCmd("file " & dst)
+        check rc == 0
+        if rc != 0:
+          failed_tests.add testname
+        else:
+          discard execCmd("file " & dst)
+
+echo "Failed tests: " & $failed_tests.len
+for name in failed_tests:
+  echo "  " & name
