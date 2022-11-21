@@ -110,12 +110,14 @@ const nimOStoZigOS = {
 }.toTable()
 
 const zigurls = {
-  "macosx-amd64": "https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz",
-  "linux-amd64": "https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz",
-  "linux-i386": "https://ziglang.org/download/0.9.0/zig-linux-i386-0.9.0.tar.xz",
-  "windows-amd64": "https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip",
-  "windows-i386": "https://ziglang.org/download/0.9.0/zig-windows-i386-0.9.0.zip",
-  "windows-arm64": "https://ziglang.org/download/0.9.0/zig-windows-aarch64-0.9.0.zip",
+  "macosx-amd64": "https://ziglang.org/download/0.10.0/zig-macos-x86_64-0.10.0.tar.xz",
+  "macosx-arm64": "https://ziglang.org/download/0.10.0/zig-macos-aarch64-0.10.0.tar.xz",
+  "linux-amd64": "https://ziglang.org/download/0.10.0/zig-linux-x86_64-0.10.0.tar.xz",
+  "linux-arm64": "https://ziglang.org/download/0.10.0/zig-linux-aarch64-0.10.0.tar.xz",
+  "linux-i386": "https://ziglang.org/download/0.10.0/zig-linux-i386-0.10.0.tar.xz",
+  "windows-amd64": "https://ziglang.org/download/0.10.0/zig-windows-x86_64-0.10.0.zip",
+  "windows-i386": "https://ziglang.org/download/0.10.0/zig-windows-i386-0.10.0.zip",
+  "windows-arm64": "https://ziglang.org/download/0.10.0/zig-windows-aarch64-0.10.0.zip",
 }.toTable()
 
 
@@ -145,6 +147,7 @@ const targets : seq[Target] = @[
   ("macosx", "arm64", ""),
   ("linux", "i386", ""),
   ("linux", "amd64", ""),
+  ("linux", "arm64", ""),
   ("linux", "amd64", "gnu.2.27"),
   ("linux", "amd64", "gnu.2.28"),
   ("linux", "amd64", "gnu.2.31"),
