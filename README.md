@@ -63,6 +63,17 @@ From macosx-amd64
   --target windows-amd64
   --target windows-arm64
   --target windows-i386
+From macosx-arm64
+  --target linux-amd64
+  --target linux-amd64-gnu.2.27
+  --target linux-amd64-gnu.2.28
+  --target linux-amd64-gnu.2.31
+  --target linux-i386
+  --target macosx-amd64
+  --target macosx-arm64
+  --target windows-amd64
+  --target windows-arm64
+  --target windows-i386
 From windows-amd64
   --target linux-amd64
   --target linux-amd64-gnu.2.27
