@@ -212,7 +212,7 @@ proc install_toolchain*(host: Pair, target: Pair, dir = "") =
     return
   get_bundle(host, target).install(dir)
 
-const DEFAULT_TOOLCHAIN_DIR = expandTilde("~/.nimxc")
+const DEFAULT_TOOLCHAIN_DIR* = expandTilde("~/.nimxc")
 
 proc exec_nim_c*(host: Pair, target: Pair, toolchains: string, args: openArray[string]): int =
   ## Execute 'nim c' but cross-compile for the given `target`
