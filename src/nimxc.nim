@@ -109,16 +109,33 @@ const nimOStoZigOS = {
   "macosx": "macos",
 }.toTable()
 
-const zigVersion = "0.9.0"
+func parseNumericVersion(x: string): seq[int] =
+  x.split(".").mapIt(it.parseInt)
+
+func `<=`(a, b: seq[int]): bool =
+  for (x,y) in zip(a,b):
+    if x > y:
+      return false
+  return true
+
+const zigVersion = block:
+  when defined(macosx):
+    let version = staticExec("sw_vers -productVersion").strip.parseNumericVersion
+    if version >= @[11, 0, 0]:
+      "0.10.0"
+    else:
+      "0.9.0"
+  else:
+    "0.10.0"
 
 const zigurls = {
-  "macosx-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
-  "macosx-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-aarch64-{zigVersion}.tar.xz",
-  "linux-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
-  "linux-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
-  "windows-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
-  "windows-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
-  "windows-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
+  "macosx-amd64": &"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
+  "macosx-arm64": &"https://ziglang.org/download/{zigVersion}/zig-macos-aarch64-{zigVersion}.tar.xz",
+  "linux-amd64": &"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
+  "linux-i386": &"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
+  "windows-amd64": &"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
+  "windows-i386": &"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
+  "windows-arm64": &"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
 }.toTable()
 
 proc mkArgs(zig_root: string, target: Target): seq[string] =
@@ -128,7 +145,7 @@ proc mkArgs(zig_root: string, target: Target): seq[string] =
     nimArchToZigArch.getOrDefault(target.cpu, target.cpu),
     target.extra,
   )
-  @[
+  result = @[
     "--cc:clang",
     "--cpu:" & target.cpu,
     "--os:" & target.os,
@@ -140,6 +157,10 @@ proc mkArgs(zig_root: string, target: Target): seq[string] =
     &"--passC:-target {zig_target.zigfmt} -fno-sanitize=undefined",
     &"--passL:-target {zig_target.zigfmt} -fno-sanitize=undefined",
   ]
+  # TODO: Workaround for https://github.com/ziglang/zig/issues/8531
+  when zigVersion == "0.10.0":
+    result.add "--passC:-fno-lto"
+    result.add "--passL:-fno-lto"
 
 #----------------------------------------------------------------------
 const targets : seq[Target] = @[
