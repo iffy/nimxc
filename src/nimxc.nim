@@ -145,7 +145,7 @@ proc mkArgs(zig_root: string, target: Target): seq[string] =
     nimArchToZigArch.getOrDefault(target.cpu, target.cpu),
     target.extra,
   )
-  @[
+  result = @[
     "--cc:clang",
     "--cpu:" & target.cpu,
     "--os:" & target.os,
@@ -157,6 +157,10 @@ proc mkArgs(zig_root: string, target: Target): seq[string] =
     &"--passC:-target {zig_target.zigfmt} -fno-sanitize=undefined",
     &"--passL:-target {zig_target.zigfmt} -fno-sanitize=undefined",
   ]
+  # TODO: Workaround for https://github.com/ziglang/zig/issues/8531
+  when zigVersion == "0.10.0":
+    result.add "--passC:-fno-lto"
+    result.add "--passL:-fno-lto"
 
 #----------------------------------------------------------------------
 const targets : seq[Target] = @[
