@@ -5,6 +5,7 @@ author        = "Matt Haggard"
 description   = "A helper to get cross-compiling working"
 license       = "MIT"
 srcDir        = "src"
+installExt    = @["nim"]
 bin           = @["nimxc"]
 
 
