@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "1.0.0"
 author        = "Matt Haggard"
 description   = "A helper to get cross-compiling working"
 license       = "MIT"
