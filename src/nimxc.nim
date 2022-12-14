@@ -109,15 +109,17 @@ const nimOStoZigOS = {
   "macosx": "macos",
 }.toTable()
 
-const zigurls = {
-  "macosx-amd64": "https://ziglang.org/download/0.9.0/zig-macos-x86_64-0.9.0.tar.xz",
-  "linux-amd64": "https://ziglang.org/download/0.9.0/zig-linux-x86_64-0.9.0.tar.xz",
-  "linux-i386": "https://ziglang.org/download/0.9.0/zig-linux-i386-0.9.0.tar.xz",
-  "windows-amd64": "https://ziglang.org/download/0.9.0/zig-windows-x86_64-0.9.0.zip",
-  "windows-i386": "https://ziglang.org/download/0.9.0/zig-windows-i386-0.9.0.zip",
-  "windows-arm64": "https://ziglang.org/download/0.9.0/zig-windows-aarch64-0.9.0.zip",
-}.toTable()
+const zigVersion = "0.9.0"
 
+const zigurls = {
+  "macosx-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
+  "macosx-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-aarch64-{zigVersion}.tar.xz",
+  "linux-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
+  "linux-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
+  "windows-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
+  "windows-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
+  "windows-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
+}.toTable()
 
 proc mkArgs(zig_root: string, target: Target): seq[string] =
   ## Return the compiler args for the given target
