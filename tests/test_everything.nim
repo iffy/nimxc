@@ -17,6 +17,7 @@ var toskip = [
   "regex_from_windows-amd64_to_linux-amd64",
   "regex_from_macosx-amd64_to_linux-amd64",
   "threading_from_macosx-arm64_to_linux-amd64",
+  "threading_from_macosx-amd64_to_windows-arm64",
   "threading_from_linux-arm64_to_linux-amd64",
   "threading_from_windows-amd64_to_linux-amd64",
 ]
