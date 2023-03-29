@@ -10,11 +10,16 @@ import nimxc
 var toskip = [
   "ssl_from_windows-amd64_to_linux-amd64",
   "ssl_from_macosx-amd64_to_linux-amd64",
+  "ssl_from_linux-arm64_to_macosx-arm64",
+  "ssl_from_linux-arm64_to_macosx-amd64",
   "sqlite_from_windows-amd64_to_linux-amd64-gnu.2.27",
   "sqlite_from_macosx-amd64_to_linux-amd64-gnu.2.27",
   "sqlite_from_macosx-arm64_to_linux-amd64-gnu.2.27",
+  "sqlite_from_linux-arm64_to_linux-amd64-gnu.2.27",
   "regex_from_windows-amd64_to_linux-amd64",
   "regex_from_macosx-amd64_to_linux-amd64",
+  "threading_from_macosx-arm64_to_linux-amd64",
+  "threading_from_linux-arm64_to_linux-amd64",
 ]
 
 var samples: seq[string]

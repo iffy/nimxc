@@ -109,13 +109,15 @@ const nimOStoZigOS = {
   "macosx": "macos",
 }.toTable()
 
-const zigVersion = "0.9.0"
+const zigVersion = "0.10.1"
 
 const zigurls = {
   "macosx-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
   "macosx-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-aarch64-{zigVersion}.tar.xz",
   "linux-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
   "linux-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
+  "linux-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-aarch64-{zigVersion}.tar.xz",
+  "linux-riscv64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-riscv64-{zigVersion}.tar.xz",
   "windows-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
   "windows-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
   "windows-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
@@ -150,9 +152,11 @@ const targets : seq[Target] = @[
   ("linux", "amd64", "gnu.2.27"),
   ("linux", "amd64", "gnu.2.28"),
   ("linux", "amd64", "gnu.2.31"),
+  ("linux", "arm64", ""),
+  ("linux", "riscv64", ""),
   ("windows", "i386", ""),
   ("windows", "amd64", ""),
-  ("windows", "arm64", ""),   
+  ("windows", "arm64", ""),
 ]
 
 for host, url in zigurls.pairs:
