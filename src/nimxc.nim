@@ -39,6 +39,14 @@ proc targetExeExt*(target: Pair): string =
   else:
     return ""
 
+proc getDir*(url: string): string =
+  let arname = url.extractFilename
+  if arname.endsWith(".zip"):
+    return arname.changeFileExt("")
+  elif arname.endsWith(".tar.xz"):
+    return arname.changeFileExt("").changeFileExt("")
+  return arname.changeFileExt("")
+
 #======================================================================
 # Target definitions
 #======================================================================
@@ -95,6 +103,26 @@ proc install_zig(src_url: string, toolchains: string) =
       raise ValueError.newException("Failed to compile zigcc")
     echo "Created zigcc at ", zigcc
 
+proc install_sdk(src_url: string, toolchains: string) =
+  let dlcache = toolchains / "download"
+  let dlfilename = dlcache / src_url.extractFilename()
+  let dstsubdir = toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
+
+  if not dstsubdir.dirExists:
+    if not dlfilename.fileExists:
+      # download it
+      createDir(dlcache)
+      echo &"Downloading {src_url} to {dlfilename} ..."
+      let client = newHttpClient()
+      defer: client.close()
+      client.downloadFile(src_url, dlfilename)
+    # extract it
+    echo &"Extracting {dlfilename} to {dstsubdir}"
+    var p = startProcess(findExe"tar",
+      args=["-x", "-C", toolchains, "-f", dlfilename],
+      options={poStdErrToStdOut, poParentStreams})
+    doAssert p.waitForExit() == 0
+
 const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
 # See https://nim-lang.org/docs/system.html#hostCPU for possible CPU arch values
@@ -111,26 +139,28 @@ const nimOStoZigOS = {
 
 const zigVersion = "0.10.1"
 
+const sdkurl = "https://ivan.vandot.rs/macosx-sdk.14.2.tar.xz"
+
 const zigurls = {
-  "macosx-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
-  "macosx-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-macos-aarch64-{zigVersion}.tar.xz",
-  "linux-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
-  "linux-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
-  "linux-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-aarch64-{zigVersion}.tar.xz",
-  "linux-riscv64": fmt"https://ziglang.org/download/{zigVersion}/zig-linux-riscv64-{zigVersion}.tar.xz",
-  "windows-amd64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
-  "windows-i386": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
-  "windows-arm64": fmt"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
+  "macosx-amd64": &"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
+  "macosx-arm64": &"https://ziglang.org/download/{zigVersion}/zig-macos-aarch64-{zigVersion}.tar.xz",
+  "linux-amd64": &"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
+  "linux-i386": &"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
+  "linux-arm64": &"https://ziglang.org/download/{zigVersion}/zig-linux-aarch64-{zigVersion}.tar.xz",
+  "linux-riscv64": &"https://ziglang.org/download/{zigVersion}/zig-linux-riscv64-{zigVersion}.tar.xz",
+  "windows-amd64": &"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
+  "windows-i386": &"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
+  "windows-arm64": &"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
 }.toTable()
 
-proc mkArgs(zig_root: string, target: Target): seq[string] =
+proc mkArgs(zig_root: string, sdk_root: string, target: Target): seq[string] =
   ## Return the compiler args for the given target
   var zig_target = (
     nimOStoZigOS.getOrDefault(target.os, target.os),
     nimArchToZigArch.getOrDefault(target.cpu, target.cpu),
     target.extra,
   )
-  @[
+  result = @[
     "--cc:clang",
     "--cpu:" & target.cpu,
     "--os:" & target.os,
@@ -142,6 +172,10 @@ proc mkArgs(zig_root: string, target: Target): seq[string] =
     &"--passC:-target {zig_target.zigfmt} -fno-sanitize=undefined",
     &"--passL:-target {zig_target.zigfmt} -fno-sanitize=undefined",
   ]
+  if "macosx" in $target:
+    result.add &"--passC:-I{sdk_root}/usr/include -fno-sanitize=undefined"
+    result.add &"--passL:-F{sdk_root}/System/Library/Frameworks -fno-sanitize=undefined"
+    result.add &"--passL:-L{sdk_root}/usr/lib -fno-sanitize=undefined"
 
 #----------------------------------------------------------------------
 const targets : seq[Target] = @[
@@ -165,22 +199,20 @@ for host, url in zigurls.pairs:
     let this_url = url
     if not host_systems.hasKey(this_host):
       host_systems[this_host] = newTable[Pair, Bundle]()
-    let arname = this_url.extractFilename
-    let dirname = if arname.endsWith(".zip"):
-      arname.changeFileExt("")
-    elif arname.endsWith(".tar.xz"):
-      arname.changeFileExt("").changeFileExt("")
-    else:
-      arname.changeFileExt("")
+    let dirname = getDir(url)
+    let sdkdirname = getDir(sdkurl)
     for target in targets:
       let targ: Target = (target.os, target.cpu, target.extra) # this is for closure purposes
       closureScope:
         let this_targ: Target = (targ.os, targ.cpu, targ.extra)
         proc install(toolchains: string) {.closure.} =
           install_zig(this_url, toolchains)
+          if "macosx" in $this_targ:
+            install_sdk(sdkurl, toolchains)
         proc args(toolchains: string): seq[string] {.closure.} =
           let zig_root = absolutePath(toolchains / dirname)
-          mkArgs(zig_root, this_targ)
+          let sdk_root = absolutePath(toolchains / sdkdirname)
+          mkArgs(zig_root, sdk_root, this_targ)
         let install_proc: InstallProc = install
         let args_proc: ArgsProc = args
         host_systems[host][$this_targ] = (install_proc, args_proc)
