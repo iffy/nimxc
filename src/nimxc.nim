@@ -119,7 +119,7 @@ proc install_sdk(src_url: string, toolchains: string) =
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
     var p = startProcess(findExe"tar",
-      args=["-x", "-C", toolchains, "-f", dlfilename],
+      args=["--force-local", "-x", "-C", toolchains, "-f", dlfilename],
       options={poStdErrToStdOut, poParentStreams})
     doAssert p.waitForExit() == 0
 
@@ -138,6 +138,10 @@ const nimOStoZigOS = {
 }.toTable()
 
 const zigVersion = "0.10.1"
+
+const winSdkUrl = {
+  "windows": "https://ivan.vandot.rs/macosx-sdk.14.2.tar.xz",
+}.toTable()
 
 const sdkurl = "https://ivan.vandot.rs/macosx-sdk.14.2.tar.xz"
 
