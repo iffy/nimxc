@@ -121,9 +121,8 @@ proc install_sdk(src_url: string, toolchains: string) =
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
-      let tmpdir = toolchains / "tmpsdk"
+      let tmpdir = toolchains / "sdk"
       extractAll(dlfilename, tmpdir)
-      moveDir(tmpdir / dstsubdir.extractFilename, dstsubdir)
     else:
       var p = startProcess(findExe"tar",
         args=["-x", "-C", toolchains, "-f", dlfilename],
@@ -147,9 +146,7 @@ const nimOStoZigOS = {
 const zigVersion = "0.10.1"
 
 const hostSDK = {
-  "windows-i386": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
-  "windows-amd64": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
-  "windows-arm64": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
+  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
 }.toTable()
 
 const sdkurl = "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.xz"
@@ -221,12 +218,14 @@ for host, url in zigurls.pairs:
         proc install(toolchains: string) {.closure.} =
           install_zig(this_url, toolchains)
           if "macosx" in $this_targ:
-            echo "THIS HOST: ", this_host
-            let this_sdkurl = hostSDK.getOrDefault(this_host, sdkurl)
+            let this_sdkurl = hostSDK.getOrDefault(hostOS, sdkurl)
             install_sdk(this_sdkurl, toolchains)
         proc args(toolchains: string): seq[string] {.closure.} =
           let zig_root = absolutePath(toolchains / dirname)
-          let sdk_root = absolutePath(toolchains / sdkdirname)
+          let sdk_root = if hostOS == "windows":
+              absolutePath(toolchains / "sdk" / sdkdirname)
+            else:
+              absolutePath(toolchains / sdkdirname)
           mkArgs(zig_root, sdk_root, this_targ)
         let install_proc: InstallProc = install
         let args_proc: ArgsProc = args
