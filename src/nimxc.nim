@@ -119,7 +119,7 @@ proc install_sdk(src_url: string, toolchains: string) =
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
     var p = startProcess(findExe"tar",
-      args=["--force-local", "-x", "-C", toolchains, "-f", dlfilename],
+      args=["--force-local", "-xf", dlfilename, "-C", toolchains],
       options={poStdErrToStdOut, poParentStreams})
     doAssert p.waitForExit() == 0
 
