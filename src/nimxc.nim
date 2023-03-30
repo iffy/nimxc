@@ -139,10 +139,6 @@ const nimOStoZigOS = {
 
 const zigVersion = "0.10.1"
 
-const winSdkUrl = {
-  "windows": "https://ivan.vandot.rs/macosx-sdk.14.2.tar.xz",
-}.toTable()
-
 const sdkurl = "https://ivan.vandot.rs/macosx-sdk.14.2.tar.xz"
 
 const zigurls = {
