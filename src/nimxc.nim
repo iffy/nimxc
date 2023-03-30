@@ -122,6 +122,9 @@ proc install_sdk(src_url: string, toolchains: string) =
     if dlfilename.endsWith(".tar.gz"):
       let tmpdir = toolchains / "sdk"
       tar.extractAll(dlfilename, tmpdir)
+    if dlfilename.endsWith(".zip"):
+      let tmpdir = toolchains / "sdk"
+      zip.extractAll(dlfilename, tmpdir)
     else:
       var p = startProcess(findExe"tar",
         args=["-x", "-C", toolchains, "-f", dlfilename],
