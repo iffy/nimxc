@@ -107,7 +107,8 @@ proc install_sdk(src_url: string, toolchains: string) =
   let dlcache = toolchains / "download"
   let dlfilename = dlcache / src_url.extractFilename()
   let dstsubdir = toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
-
+  var dstdir = toolchains
+  dstdir.normalizePath()
   if not dstsubdir.dirExists:
     if not dlfilename.fileExists:
       # download it
@@ -119,7 +120,7 @@ proc install_sdk(src_url: string, toolchains: string) =
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
     var p = startProcess(findExe"tar",
-      args=["--force-local", "-xf", dlfilename, "-C", toolchains],
+      args=["--force-local", "-x", "-C", dstdir, "-f", dlfilename],
       options={poStdErrToStdOut, poParentStreams})
     doAssert p.waitForExit() == 0
 
