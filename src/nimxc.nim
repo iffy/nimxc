@@ -106,9 +106,10 @@ proc install_zig(src_url: string, toolchains: string) =
 proc install_sdk(src_url: string, toolchains: string) =
   let dlcache = toolchains / "download"
   let dlfilename = dlcache / src_url.extractFilename()
-  let dstsubdir = toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
-  var dstdir = toolchains
-  dstdir.normalizePath()
+  let dstsubdir = if dlfilename.endsWith(".zip"):
+      toolchains / dlfilename.extractFilename.changeFileExt("")
+    else:
+      toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
   if not dstsubdir.dirExists:
     if not dlfilename.fileExists:
       # download it
@@ -119,10 +120,15 @@ proc install_sdk(src_url: string, toolchains: string) =
       client.downloadFile(src_url, dlfilename)
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
-    var p = startProcess(findExe"tar",
-      args=["--force-local", "-x", "-C", dstdir, "-f", dlfilename],
-      options={poStdErrToStdOut, poParentStreams})
-    doAssert p.waitForExit() == 0
+    if dlfilename.endsWith(".zip"):
+      let tmpdir = toolchains / "tmp"
+      extractAll(dlfilename, tmpdir)
+      moveDir(tmpdir / dstsubdir.extractFilename, dstsubdir)
+    else:
+      var p = startProcess(findExe"tar",
+        args=["-x", "-C", toolchains, "-f", dlfilename],
+        options={poStdErrToStdOut, poParentStreams})
+      doAssert p.waitForExit() == 0
 
 const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
@@ -140,7 +146,11 @@ const nimOStoZigOS = {
 
 const zigVersion = "0.10.1"
 
-const sdkurl = "https://ivan.vandot.rs/macosx-sdk.14.2.tar.xz"
+const hostSDK = {
+  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
+}.toTable()
+
+const sdkurl = "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.xz"
 
 const zigurls = {
   "macosx-amd64": &"https://ziglang.org/download/{zigVersion}/zig-macos-x86_64-{zigVersion}.tar.xz",
@@ -209,7 +219,8 @@ for host, url in zigurls.pairs:
         proc install(toolchains: string) {.closure.} =
           install_zig(this_url, toolchains)
           if "macosx" in $this_targ:
-            install_sdk(sdkurl, toolchains)
+            let this_sdkurl = hostSDK.getOrDefault(this_host, sdkurl)
+            install_sdk(this_sdkurl, toolchains)
         proc args(toolchains: string): seq[string] {.closure.} =
           let zig_root = absolutePath(toolchains / dirname)
           let sdk_root = absolutePath(toolchains / sdkdirname)
