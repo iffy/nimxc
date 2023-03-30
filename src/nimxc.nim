@@ -121,7 +121,7 @@ proc install_sdk(src_url: string, toolchains: string) =
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
-      let tmpdir = toolchains / "tmp"
+      let tmpdir = toolchains / "tmpsdk"
       extractAll(dlfilename, tmpdir)
       moveDir(tmpdir / dstsubdir.extractFilename, dstsubdir)
     else:
