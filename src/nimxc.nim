@@ -148,7 +148,7 @@ const nimOStoZigOS = {
 const zigVersion = "0.10.1"
 
 const hostSDK = {
-  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.gz",
+  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
 }.toTable()
 
 const sdkurl = "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.xz"
