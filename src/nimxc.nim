@@ -147,7 +147,9 @@ const nimOStoZigOS = {
 const zigVersion = "0.10.1"
 
 const hostSDK = {
-  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
+  "windows-i386": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
+  "windows-amd64": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
+  "windows-arm64": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
 }.toTable()
 
 const sdkurl = "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.xz"
@@ -219,6 +221,7 @@ for host, url in zigurls.pairs:
         proc install(toolchains: string) {.closure.} =
           install_zig(this_url, toolchains)
           if "macosx" in $this_targ:
+            echo "THIS HOST: ", this_host
             let this_sdkurl = hostSDK.getOrDefault(this_host, sdkurl)
             install_sdk(this_sdkurl, toolchains)
         proc args(toolchains: string): seq[string] {.closure.} =
