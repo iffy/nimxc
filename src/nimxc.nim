@@ -6,7 +6,8 @@ import std/strformat
 import std/strutils
 import std/tables
 
-import zippy/ziparchives
+import zippy/ziparchives as zip
+import zippy/tarballs as tar
 
 type
   Pair* = string
@@ -43,9 +44,7 @@ proc getDir*(url: string): string =
   let arname = url.extractFilename
   if arname.endsWith(".zip"):
     return arname.changeFileExt("")
-  elif arname.endsWith(".tar.xz"):
-    return arname.changeFileExt("").changeFileExt("")
-  return arname.changeFileExt("")
+  return arname.changeFileExt("").changeFileExt("")
 
 #======================================================================
 # Target definitions
@@ -73,7 +72,7 @@ proc install_zig(src_url: string, toolchains: string) =
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
       let tmpdir = toolchains / "tmp"
-      extractAll(dlfilename, tmpdir)
+      zip.extractAll(dlfilename, tmpdir)
       moveDir(tmpdir / dstsubdir.extractFilename, dstsubdir)
     else:
       var p = startProcess(findExe"tar",
@@ -120,9 +119,9 @@ proc install_sdk(src_url: string, toolchains: string) =
       client.downloadFile(src_url, dlfilename)
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
-    if dlfilename.endsWith(".zip"):
+    if dlfilename.endsWith(".tar.gz"):
       let tmpdir = toolchains / "sdk"
-      extractAll(dlfilename, tmpdir)
+      tar.extractAll(dlfilename, tmpdir)
     else:
       var p = startProcess(findExe"tar",
         args=["-x", "-C", toolchains, "-f", dlfilename],
@@ -146,7 +145,7 @@ const nimOStoZigOS = {
 const zigVersion = "0.10.1"
 
 const hostSDK = {
-  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
+  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.gz",
 }.toTable()
 
 const sdkurl = "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.xz"
