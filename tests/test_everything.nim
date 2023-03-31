@@ -43,6 +43,8 @@ var failed_tests: seq[string]
 
 if host_systems.hasKey(THIS_HOST):
   for target in host_systems[THIS_HOST].keys:
+    if "windows" in THIS_HOST and "macosx" in target:
+      continue
     for sample in samples:
       let testname = sample.extractFilename & "_from_" & THIS_HOST & "_to_" & target
       if testname in toskip:

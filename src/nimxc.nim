@@ -6,8 +6,7 @@ import std/strformat
 import std/strutils
 import std/tables
 
-import zippy/ziparchives as zip
-import zippy/tarballs as tar
+import zippy/ziparchives
 
 type
   Pair* = string
@@ -15,8 +14,8 @@ type
     os: string
     cpu: string
     extra: string
-  InstallProc = proc(dir: string): void {.closure.}
-  ArgsProc = proc(dir: string): seq[string] {.closure.}
+  InstallProc = proc(dir: string, sdk: string): void {.closure.}
+  ArgsProc = proc(dir: string, sdk: string): seq[string] {.closure.}
   Bundle = tuple
     install: InstallProc
     args: ArgsProc
@@ -72,7 +71,7 @@ proc install_zig(src_url: string, toolchains: string) =
     echo &"Extracting {dlfilename} to {dstsubdir}"
     if dlfilename.endsWith(".zip"):
       let tmpdir = toolchains / "tmp"
-      zip.extractAll(dlfilename, tmpdir)
+      extractAll(dlfilename, tmpdir)
       moveDir(tmpdir / dstsubdir.extractFilename, dstsubdir)
     else:
       var p = startProcess(findExe"tar",
@@ -105,10 +104,7 @@ proc install_zig(src_url: string, toolchains: string) =
 proc install_sdk(src_url: string, toolchains: string) =
   let dlcache = toolchains / "download"
   let dlfilename = dlcache / src_url.extractFilename()
-  let dstsubdir = if dlfilename.endsWith(".zip"):
-      toolchains / dlfilename.extractFilename.changeFileExt("")
-    else:
-      toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
+  let dstsubdir = toolchains / dlfilename.extractFilename.changeFileExt("").changeFileExt("")
   if not dstsubdir.dirExists:
     if not dlfilename.fileExists:
       # download it
@@ -119,17 +115,10 @@ proc install_sdk(src_url: string, toolchains: string) =
       client.downloadFile(src_url, dlfilename)
     # extract it
     echo &"Extracting {dlfilename} to {dstsubdir}"
-    if dlfilename.endsWith(".tar.gz"):
-      let tmpdir = toolchains / "sdk"
-      tar.extractAll(dlfilename, tmpdir)
-    if dlfilename.endsWith(".zip"):
-      let tmpdir = toolchains / "sdk"
-      zip.extractAll(dlfilename, tmpdir)
-    else:
-      var p = startProcess(findExe"tar",
-        args=["-x", "-C", toolchains, "-f", dlfilename],
-        options={poStdErrToStdOut, poParentStreams})
-      doAssert p.waitForExit() == 0
+    var p = startProcess(findExe"tar",
+      args=["-x", "-C", toolchains, "-f", dlfilename],
+      options={poStdErrToStdOut, poParentStreams})
+    doAssert p.waitForExit() == 0
 
 const zigcc_name = "zigcc".changeFileExt(ExeExt)
 
@@ -147,10 +136,6 @@ const nimOStoZigOS = {
 
 const zigVersion = "0.10.1"
 
-const hostSDK = {
-  "windows": "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.zip",
-}.toTable()
-
 const sdkurl = "https://github.com/vandot/nimxc/releases/download/sdk/macosx-sdk.14.2.tar.xz"
 
 const zigurls = {
@@ -159,7 +144,6 @@ const zigurls = {
   "linux-amd64": &"https://ziglang.org/download/{zigVersion}/zig-linux-x86_64-{zigVersion}.tar.xz",
   "linux-i386": &"https://ziglang.org/download/{zigVersion}/zig-linux-i386-{zigVersion}.tar.xz",
   "linux-arm64": &"https://ziglang.org/download/{zigVersion}/zig-linux-aarch64-{zigVersion}.tar.xz",
-  "linux-riscv64": &"https://ziglang.org/download/{zigVersion}/zig-linux-riscv64-{zigVersion}.tar.xz",
   "windows-amd64": &"https://ziglang.org/download/{zigVersion}/zig-windows-x86_64-{zigVersion}.zip",
   "windows-i386": &"https://ziglang.org/download/{zigVersion}/zig-windows-i386-{zigVersion}.zip",
   "windows-arm64": &"https://ziglang.org/download/{zigVersion}/zig-windows-aarch64-{zigVersion}.zip",
@@ -199,7 +183,6 @@ const targets : seq[Target] = @[
   ("linux", "amd64", "gnu.2.28"),
   ("linux", "amd64", "gnu.2.31"),
   ("linux", "arm64", ""),
-  ("linux", "riscv64", ""),
   ("windows", "i386", ""),
   ("windows", "amd64", ""),
   ("windows", "arm64", ""),
@@ -217,15 +200,14 @@ for host, url in zigurls.pairs:
       let targ: Target = (target.os, target.cpu, target.extra) # this is for closure purposes
       closureScope:
         let this_targ: Target = (targ.os, targ.cpu, targ.extra)
-        proc install(toolchains: string) {.closure.} =
+        proc install(toolchains: string, sdk: string) {.closure.} =
           install_zig(this_url, toolchains)
-          if "macosx" in $this_targ:
-            let this_sdkurl = hostSDK.getOrDefault(hostOS, sdkurl)
-            install_sdk(this_sdkurl, toolchains)
-        proc args(toolchains: string): seq[string] {.closure.} =
+          if "macosx" in $this_targ and hostOS != "windows":
+            install_sdk(sdkurl, toolchains)
+        proc args(toolchains: string, sdk: string): seq[string] {.closure.} =
           let zig_root = absolutePath(toolchains / dirname)
-          let sdk_root = if hostOS == "windows":
-              absolutePath(toolchains / "sdk" / sdkdirname)
+          let sdk_root = if sdk != "":
+              absolutePath(sdk) 
             else:
               absolutePath(toolchains / sdkdirname)
           mkArgs(zig_root, sdk_root, this_targ)
@@ -236,8 +218,8 @@ for host, url in zigurls.pairs:
 # add nop targets for the host itself
 for key in host_systems.keys:
   block:
-    proc install(toolchains: string) = discard
-    proc args(toolchains: string): seq[string] = discard
+    proc install(toolchains: string, sdk: string) = discard
+    proc args(toolchains: string, sdk : string): seq[string] = discard
     let install_proc: InstallProc = install
     let args_proc: ArgsProc = args
     host_systems[key][key] = (install_proc, args_proc)
@@ -254,21 +236,21 @@ proc get_bundle(host: Pair, target: Pair): Bundle =
     raise ValueError.newException(&"Target {target} unsupported on {host}. Acceptable targets: " & targets_for(host).join(", "))
   return host_systems[host][target]
 
-proc compile_args*(host: Pair, target: Pair, dir = ""): seq[string] =
+proc compile_args*(host: Pair, target: Pair, dir = "", sdk = ""): seq[string] =
   ## Return the nim compile args to use to compile for the given target
   if host == target:
     return
-  get_bundle(host, target).args(dir)
+  get_bundle(host, target).args(dir, sdk)
 
-proc install_toolchain*(host: Pair, target: Pair, dir = "") =
+proc install_toolchain*(host: Pair, target: Pair, dir = "", sdk = "") =
   ## Install the toolchain for cross-compiling
   if host == target:
     return
-  get_bundle(host, target).install(dir)
+  get_bundle(host, target).install(dir, sdk)
 
 const DEFAULT_TOOLCHAIN_DIR* = expandTilde("~/.nimxc")
 
-proc exec_nim_c*(host: Pair, target: Pair, toolchains: string, args: openArray[string]): int =
+proc exec_nim_c*(host: Pair, target: Pair, toolchains: string, sdk: string, args: openArray[string]): int =
   ## Execute 'nim c' but cross-compile for the given `target`
   var full_args = @["c"]
   full_args.add(host.compile_args(target, toolchains))
@@ -318,7 +300,11 @@ when isMainModule:
           for host in toSeq(host_systems.keys).sorted:
             echo &"From {host}"
             for dst in toSeq(host_systems[host].keys).sorted:
-              echo &"  --target {dst}"
+              let msg = if "windows" in host and "macosx" in dst:
+                  &"  --target {dst} (if MacOSX SDK is installed)"
+                else:
+                  &"  --target {dst}"
+              echo msg
         else:
           for targ in targets_for(THIS_HOST):
             echo &"--target {targ}"
@@ -336,9 +322,12 @@ when isMainModule:
       option("-t", "--target", help="Target system.")
       flag("--no-auto-install", help="If given, don't attempt to install the toolchain if it's missing")
       option("-d", "--directory", help="Directory where toolchains were installed", default=some(DEFAULT_TOOLCHAIN_DIR))
+      option("--sdk", help="Root directory where MacOSX SDK is installed")
       arg("args", nargs = -1, help="Options to be passed directly to 'nim c'")
       run:
+        if hostOS == "windows" and "macosx" in opts.target and opts.sdk == "":
+          quit("Cross-compiling to macosx targets without MacOSX SDK is not supported on Windows.")
         if not opts.no_auto_install:
-          THIS_HOST.install_toolchain(opts.target, opts.directory)
-        quit(THIS_HOST.exec_nim_c(opts.target, opts.directory, opts.args))
+          THIS_HOST.install_toolchain(opts.target, opts.directory, opts.sdk)
+        quit(THIS_HOST.exec_nim_c(opts.target, opts.directory, opts.sdk, opts.args))
   p.run()
