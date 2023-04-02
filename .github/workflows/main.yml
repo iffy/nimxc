@@ -37,9 +37,6 @@ jobs:
       with:
         name: binaries-${{ matrix.os }}
         path: binaries-${{ matrix.os }}.tgz
-    - name: Setup tmate session
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
   run:
     needs: [compile]
     runs-on: ${{ matrix.os }}

@@ -68,7 +68,7 @@ if host_systems.hasKey(THIS_HOST):
         var args = @["c", "-o:" & dst]
         for arg in THIS_HOST.compile_args(target, toolchains_root):
           args.add(arg)
-        if testname == "threading_from_windows-amd64_to_linux-amd64":
+        if testname in @["threading_from_windows-amd64_to_linux-amd64", "threading_from_macosx-amd64_to_linux-amd64"]:
           args.add("--passC:-Wno-error=int-conversion  -fno-sanitize=undefined")
         args.add(src.extractFilename)
         echo "cd " & subdir
