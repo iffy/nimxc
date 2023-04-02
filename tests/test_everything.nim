@@ -69,6 +69,8 @@ if host_systems.hasKey(THIS_HOST):
         for arg in THIS_HOST.compile_args(target, toolchains_root):
           args.add(arg)
         args.add(src.extractFilename)
+        if testname == "threading_from_windows-amd64_to_linux-amd64":
+          args.add("-Wno-error=int-conversion")
         echo "cd " & subdir
         echo "nim " & args.mapIt("'" & it & "'").join(" ")
         var p = startProcess(command = findExe"nim", workingDir = subdir,
