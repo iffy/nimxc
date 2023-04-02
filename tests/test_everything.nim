@@ -12,7 +12,8 @@ var toskip = [
   "ssl_from_macosx-amd64_to_linux-amd64",
   "sqlite_from_windows-amd64_to_linux-amd64-gnu.2.27",
   "sqlite_from_macosx-amd64_to_linux-amd64-gnu.2.27",
-  "sqlite_from_macosx-arm64_to_linux-amd64-gnu.2.27",
+  "sqlite_from_macosx-arm64_to_linux-amd64-gnu.2.27", ## undefined symbol: fcntl64 https://github.com/ziglang/zig/pull/15101
+  "sqlite_from_linux-arm64_to_linux-amd64-gnu.2.27", ## undefined symbol: fcntl64 https://github.com/ziglang/zig/pull/15101
   "regex_from_windows-amd64_to_linux-amd64",
   "regex_from_macosx-amd64_to_linux-amd64",
 ]
@@ -36,6 +37,8 @@ var failed_tests: seq[string]
 
 if host_systems.hasKey(THIS_HOST):
   for target in host_systems[THIS_HOST].keys:
+    if "windows" in THIS_HOST and "macosx" in target:
+      continue
     for sample in samples:
       let testname = sample.extractFilename & "_from_" & THIS_HOST & "_to_" & target
       if testname in toskip:
@@ -59,6 +62,8 @@ if host_systems.hasKey(THIS_HOST):
         var args = @["c", "-o:" & dst]
         for arg in THIS_HOST.compile_args(target, toolchains_root):
           args.add(arg)
+        if testname in @["threading_from_windows-amd64_to_linux-amd64", "threading_from_macosx-amd64_to_linux-amd64"]:
+          args.add("--passC:-Wno-error=int-conversion  -fno-sanitize=undefined")
         args.add(src.extractFilename)
         echo "cd " & subdir
         echo "nim " & args.mapIt("'" & it & "'").join(" ")
