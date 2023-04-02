@@ -16,12 +16,6 @@ var toskip = [
   "sqlite_from_linux-arm64_to_linux-amd64-gnu.2.27", ## undefined symbol: fcntl64 https://github.com/ziglang/zig/pull/15101
   "regex_from_windows-amd64_to_linux-amd64",
   "regex_from_macosx-amd64_to_linux-amd64",
-  # "threading_from_macosx-arm64_to_linux-amd64",
-  # "threading_from_macosx-amd64_to_windows-arm64",
-  # "threading_from_macosx-amd64_to_linux-amd64",
-  # "threading_from_linux-arm64_to_linux-amd64",
-  # "threading_from_windows-amd64_to_linux-amd64",
-  # "threading_from_windows-amd64_to_windows-arm64",
 ]
 
 var samples: seq[string]

@@ -37,7 +37,6 @@ From linux-amd64
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
@@ -50,7 +49,6 @@ From linux-i386
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
@@ -63,7 +61,6 @@ From macosx-amd64
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
@@ -76,7 +73,6 @@ From macosx-arm64
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
@@ -89,7 +85,6 @@ From windows-amd64
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
@@ -102,7 +97,6 @@ From windows-arm64
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
@@ -115,7 +109,6 @@ From windows-i386
   --target linux-amd64-gnu.2.31
   --target linux-i386
   --target linux-arm64
-  --target linux-riscv64
   --target macosx-amd64
   --target macosx-arm64
   --target windows-amd64
